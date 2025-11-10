@@ -1,168 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ryan's Financial Calculators</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ryan's Financial Calculators</title>
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
+  <!-- 🌈 Existing CSS -->
+  <style>
+    /* (keep all your existing styles here) */
 
-        .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 50px;
-            max-width: 600px;
-            width: 100%;
-            text-align: center;
-        }
+    /* 👇 ADD THIS NEW STYLE SECTION AT THE BOTTOM OF YOUR EXISTING CSS */
+    /* --- Financial Tools Section Styles --- */
+    .tools-section {
+      margin-top: 60px;
+      background: linear-gradient(135deg, #f8f9fc 0%, #eef2f7 100%);
+      border-radius: 16px;
+      padding: 35px;
+      text-align: left;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
 
-        h1 {
-            color: #333;
-            font-size: 2.5em;
-            margin-bottom: 15px;
-            font-weight: 700;
-        }
+    .tools-section h2 {
+      font-size: 1.8em;
+      color: #333;
+      margin-bottom: 15px;
+    }
 
-        .subtitle {
-            color: #666;
-            font-size: 1.2em;
-            margin-bottom: 30px;
-            line-height: 1.6;
-        }
+    .tools-section p {
+      color: #555;
+      margin-bottom: 25px;
+      line-height: 1.6;
+    }
 
-        .about-section {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 35px;
-            text-align: left;
-        }
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
 
-        .about-section p {
-            color: #444;
-            font-size: 1em;
-            line-height: 1.7;
-            margin-bottom: 12px;
-        }
+    .tool-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
 
-        .about-section p:last-child {
-            margin-bottom: 0;
-            font-size: 0.95em;
-            color: #666;
-            font-style: italic;
-        }
+    .tool-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    }
 
-        .calculators {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
+    .tool-card h3 {
+      margin-bottom: 10px;
+      color: #667eea;
+      font-size: 1.2em;
+    }
 
-        .calc-button {
-            display: block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            text-decoration: none;
-            padding: 25px 40px;
-            border-radius: 12px;
-            font-size: 1.3em;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
+    .tool-card p {
+      font-size: 0.95em;
+      color: #444;
+      line-height: 1.5;
+    }
 
-        .calc-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
-        }
-
-        .calc-button:active {
-            transform: translateY(-1px);
-        }
-
-        .calc-description {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 0.85em;
-            margin-top: 8px;
-            font-weight: 400;
-        }
-
-        footer {
-            margin-top: 40px;
-            padding-top: 30px;
-            border-top: 2px solid #eee;
-            color: #999;
-            font-size: 0.9em;
-        }
-
-        @media (max-width: 600px) {
-            .container {
-                padding: 30px 20px;
-            }
-
-            h1 {
-                font-size: 2em;
-            }
-
-            .subtitle {
-                font-size: 1em;
-            }
-
-            .about-section {
-                padding: 20px;
-            }
-
-            .about-section p {
-                font-size: 0.95em;
-            }
-
-            .calc-button {
-                padding: 20px 30px;
-                font-size: 1.1em;
-            }
-        }
-    </style>
+    @media (max-width: 600px) {
+      .tools-section {
+        padding: 25px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Ryan's Financial Calculators</h1>
-        <p class="subtitle">Free tools to help you plan your financial future</p>
-        
-        <div class="about-section">
-            <p>Hi, I'm Ryan. I recently discovered my passion for helping others navigate their financial journeys. These calculators are designed to give you clarity and confidence in planning your financial future - completely free, no strings attached.</p>
-            <p>While these tools may not be 100% accurate, they should point you in the right direction and help you make more informed financial decisions.</p>
-        </div>
-        
-        <div class="calculators">
-            <a href="Retirement%20Calculator.html" class="calc-button">
-                📊 Retirement Calculator
-                <div class="calc-description">Plan your retirement savings and see your future nest egg</div>
-            </a>
-            
-            <a href="Snowball.html" class="calc-button">
-                💰 Debt Snowball Calculator
-                <div class="calc-description">Create a plan to pay off your debts faster</div>
-            </a>
-        </div>
-        
-        <footer>
-            © 2024 Ryan's Financial Calculators
-        </footer>
+  <div class="container">
+    <h1>Ryan's Financial Calculators</h1>
+    <p class="subtitle">Free tools to help you plan your financial future</p>
+
+    <div class="about-section">
+      <p>Hi, I'm Ryan. I recently discovered my passion for helping others navigate their financial journeys. These calculators are designed to give you clarity and confidence in planning your financial future - completely free, no strings attached.</p>
+      <p>While these tools may not be 100% accurate, they should point you in the right direction and help you make more informed financial decisions.</p>
     </div>
+
+    <div class="calculators">
+      <a href="Retirement%20Calculator.html" class="calc-button">
+        📊 Retirement Calculator
+        <div class="calc-description">Plan your retirement savings and see your future nest egg</div>
+      </a>
+
+      <a href="Snowball.html" class="calc-button">
+        💰 Debt Snowball Calculator
+        <div class="calc-description">Create a plan to pay off your debts faster</div>
+      </a>
+    </div>
+
+    <!-- ✳️ NEW FINANCIAL TOOLS SECTION STARTS HERE -->
+    <section class="tools-section" id="financial-tools">
+      <h2>📚 Financial Tools & Resources</h2>
+      <p>More free tools and guides to help you take control of your money, learn key skills, and stay on track financially.</p>
+
+      <div class="tools-grid">
+        <div class="tool-card">
+          <h3>📝 Budget Planner</h3>
+          <p>Set up a monthly or biweekly budget and see where your money goes. (Coming soon!)</p>
+        </div>
+
+        <div class="tool-card">
+          <h3>📈 Investment Growth Tracker</h3>
+          <p>Visualize your long-term returns and compare TFSA vs RRSP growth. (Coming soon!)</p>
+        </div>
+
+        <div class="tool-card">
+          <h3>🏦 Emergency Fund Goal</h3>
+          <p>Calculate how much you need to cover 3–6 months of expenses. (Coming soon!)</p>
+        </div>
+
+        <div class="tool-card">
+          <h3>📘 Free Learning Guides</h3>
+          <p>Beginner-friendly articles about budgeting, paying off debt, and investing. (Coming soon!)</p>
+        </div>
+      </div>
+    </section>
+    <!-- ✳️ NEW FINANCIAL TOOLS SECTION ENDS HERE -->
+
+    <footer>
+      © 2024 Ryan's Financial Calculators
+    </footer>
+  </div>
+
+  <!-- ⚙️ Optional future script placeholder -->
+  <script>
+    // In the future, you can add JS interactivity here
+  </script>
 </body>
 </html>
