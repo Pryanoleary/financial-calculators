@@ -5,12 +5,103 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ryan's Financial Calculators</title>
 
-  <!-- 🌈 Existing CSS -->
   <style>
-    /* (keep all your existing styles here) */
+    /* --- Global Styles --- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-    /* 👇 ADD THIS NEW STYLE SECTION AT THE BOTTOM OF YOUR EXISTING CSS */
-    /* --- Financial Tools Section Styles --- */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #222;
+      min-height: 100vh;
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 50px;
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 15px;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 1.2em;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    .about-section {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 35px;
+      text-align: left;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .about-section p {
+      color: #444;
+      font-size: 1em;
+      line-height: 1.7;
+      margin-bottom: 12px;
+    }
+
+    .about-section p:last-child {
+      font-size: 0.95em;
+      color: #666;
+      font-style: italic;
+      margin-bottom: 0;
+    }
+
+    .calculators {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .calc-button {
+      display: block;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-decoration: none;
+      padding: 25px 40px;
+      border-radius: 12px;
+      font-size: 1.3em;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .calc-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+    }
+
+    .calc-description {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.85em;
+      margin-top: 8px;
+      font-weight: 400;
+    }
+
+    /* --- Tools Section --- */
     .tools-section {
       margin-top: 60px;
       background: linear-gradient(135deg, #f8f9fc 0%, #eef2f7 100%);
@@ -18,6 +109,7 @@
       padding: 35px;
       text-align: left;
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      transition: background 0.3s, color 0.3s;
     }
 
     .tools-section h2 {
@@ -63,23 +155,68 @@
       line-height: 1.5;
     }
 
+    /* --- Footer --- */
+    footer {
+      margin-top: 40px;
+      padding-top: 30px;
+      border-top: 2px solid #eee;
+      color: #999;
+      font-size: 0.9em;
+    }
+
+    /* --- Back to Top Button --- */
+    #backToTop {
+      position: fixed;
+      bottom: 30px;
+      right: 20px;
+      z-index: 1000;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      background: #667eea;
+      color: white;
+      cursor: pointer;
+      display: none;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    #backToTop:hover {
+      transform: translateY(-2px);
+    }
+
+    /* --- Dark Mode --- */
+    body.dark-mode {
+      background: #121212;
+      color: #eaeaea;
+    }
+
+    body.dark-mode .container {
+      background: #1e1e1e;
+      color: #eaeaea;
+    }
+
+    body.dark-mode .about-section,
+    body.dark-mode .tools-section,
+    body.dark-mode .tool-card {
+      background: #2a2a2a;
+      color: #eaeaea;
+    }
+
+    body.dark-mode .calc-button {
+      background: linear-gradient(135deg, #4444aa 0%, #663399 100%);
+      color: #fff;
+    }
+
     @media (max-width: 600px) {
-      .tools-section {
-        padding: 25px;
-      }
+      .container { padding: 30px 20px; }
+      h1 { font-size: 2em; }
+      .subtitle { font-size: 1em; }
+      .about-section { padding: 20px; }
+      .calc-button { padding: 20px 30px; font-size: 1.1em; }
     }
   </style>
 </head>
 <body>
-  <!-- Dark Mode Toggle -->
-<button id="darkModeToggle" style="position:fixed; top:20px; right:20px; z-index:1000; padding:10px 15px; border:none; border-radius:8px; background:#667eea; color:white; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.2);">
-  🌙
-</button>
-
-<!-- Back to Top Button -->
-<button id="backToTop" style="position:fixed; bottom:30px; right:20px; z-index:1000; padding:10px 15px; border:none; border-radius:8px; background:#667eea; color:white; cursor:pointer; display:none; box-shadow:0 4px 10px rgba(0,0,0,0.2);">
-  ⬆ Top
-</button>
   <div class="container">
     <h1>Ryan's Financial Calculators</h1>
     <p class="subtitle">Free tools to help you plan your financial future</p>
@@ -101,7 +238,7 @@
       </a>
     </div>
 
-    <!-- ✳️ NEW FINANCIAL TOOLS SECTION STARTS HERE -->
+    <!-- ✳️ Tools Section -->
     <section class="tools-section" id="financial-tools">
       <h2>📚 Financial Tools & Resources</h2>
       <p>More free tools and guides to help you take control of your money, learn key skills, and stay on track financially.</p>
@@ -113,51 +250,61 @@
         </div>
 
         <div class="tool-card">
+          <h3>📈 Investment Growth Tracker</h3>
+          <p>Visualize your long-term returns and compare TFSA vs RRSP growth. (Coming soon!)</p>
+        </div>
+
+        <div class="tool-card">
           <h3>🏦 Emergency Fund Goal</h3>
           <p>Calculate how much you need to cover 3–6 months of expenses. (Coming soon!)</p>
         </div>
+
+        <div class="tool-card">
+          <h3>📘 Free Learning Guides</h3>
+          <p>Beginner-friendly articles about budgeting, paying off debt, and investing. (Coming soon!)</p>
+        </div>
       </div>
     </section>
-    <!-- ✳️ NEW FINANCIAL TOOLS SECTION ENDS HERE -->
 
     <footer>
       © 2024 Ryan's Financial Calculators
     </footer>
   </div>
 
-  <!-- ⚙️ Optional future script placeholder -->
+  <!-- Dark Mode & Back to Top Buttons -->
+  <button id="darkModeToggle" style="position:fixed; top:20px; right:20px; z-index:1000; padding:10px 15px; border:none; border-radius:8px; background:#667eea; color:white; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.2);">🌙</button>
+  <button id="backToTop">⬆ Top</button>
+
   <script>
-    // In the future, you can add JS interactivity here
+    const darkModeToggle = document.getElementById("darkModeToggle");
+    const backToTop = document.getElementById("backToTop");
+    const body = document.body;
+
+    // Dark Mode Load
+    if (localStorage.getItem("darkMode") === "true") {
+      body.classList.add("dark-mode");
+      darkModeToggle.textContent = "☀️";
+    }
+
+    darkModeToggle.addEventListener("click", () => {
+      body.classList.toggle("dark-mode");
+      const isDark = body.classList.contains("dark-mode");
+      darkModeToggle.textContent = isDark ? "☀️" : "🌙";
+      localStorage.setItem("darkMode", isDark);
+    });
+
+    // Back to Top
+    window.addEventListener("scroll", () => {
+      if (window.scrollY > 300) {
+        backToTop.style.display = "block";
+      } else {
+        backToTop.style.display = "none";
+      }
+    });
+
+    backToTop.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
   </script>
-  <script>  const darkModeToggle = document.getElementById("darkModeToggle");
-const backToTop = document.getElementById("backToTop");
-const body = document.body;
-
-// --- Dark Mode ---
-if (localStorage.getItem("darkMode") === "true") {
-  body.classList.add("dark-mode");
-  darkModeToggle.textContent = "☀️";
-}
-
-darkModeToggle.addEventListener("click", () => {
-  body.classList.toggle("dark-mode");
-  const isDark = body.classList.contains("dark-mode");
-  darkModeToggle.textContent = isDark ? "☀️" : "🌙";
-  localStorage.setItem("darkMode", isDark);
-});
-
-// --- Back to Top ---
-window.addEventListener("scroll", () => {
-  if (window.scrollY > 300) {
-    backToTop.style.display = "block";
-  } else {
-    backToTop.style.display = "none";
-  }
-});
-
-backToTop.addEventListener("click", () => {
-  window.scrollTo({ top: 0, behavior: "smooth" });
-});
-    </script>
 </body>
 </html>
