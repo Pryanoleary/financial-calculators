@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Debt Snowball Calculator (CAD)</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <style>
+    body {
+      font-family: "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #121212;
+      color: #f5f5f5;
+      transition: background-color 0.4s, color 0.4s;
+    }
+
+    header {
+      background: #1e1e1e;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+
+    .mode-toggle button {
+      background-color: #333;
+      border: 1px solid #666;
+      color: #f5f5f5;
+      border-radius: 6px;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .mode-toggle button:hover {
+      background-color: #444;
+    }
+
+    .controls {
+      margin: 2rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th, td {
+      padding: 0.75rem;
+      text-align: center;
+    }
+
+    th {
+      background-color: #1e1e1e;
+      border-bottom: 2px solid #333;
+    }
+
+    td {
+      background-color: #181818;
+      border-bottom: 1px solid #333;
+    }
+
+    input, select, button {
+      border-radius: 4px;
+      padding: 0.4rem;
+      border: 1px solid #666;
+      background-color: #222;
+      color: #f5f5f5;
+    }
+
+    input[type="number"], input[type="text"] {
+      width: 100%;
+      max-width: 150px;
+    }
+
+    .remove-btn {
+      background-color: #8b0000;
+      color: white;
+      border: none;
+      padding: 0.4rem 0.7rem;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    .remove-btn:hover {
+      background-color: #b30000;
+    }
+
+    #addDebt {
+      margin-top: 0.8rem;
+      background-color: #004aad;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #addDebt:hover {
+      background-color: #0066cc;
+    }
+
+    .payment-options {
+      margin-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    #calculateBtn {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #calculateBtn:hover {
+      background-color: #2fc75f;
+    }
+
+    .results, .chart-section {
+      margin: 2rem;
+      padding: 1rem;
+      background-color: #181818;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+    }
+
+    .chart-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    body.light-mode {
+      background-color: #f5f5f5;
+      color: #222;
+    }
+
+    body.light-mode header {
+      background: #e0e0e0;
+      color: #222;
+    }
+
+    body.light-mode table th {
+      background-color: #ddd;
+      color: #222;
+    }
+
+    body.light-mode td {
+      background-color: #fff;
+      color: #222;
+    }
+
+    body.light-mode input, 
+    body.light-mode select, 
+    body.light-mode button {
+      background-color: #fff;
+      color: #000;
+      border: 1px solid #bbb;
+    }
+
+    body.light-mode .results, 
+    body.light-mode .chart-section {
+      background-color: #fafafa;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      color: #888;
+    }
+  </style>
+</head>
+<body class="dark-mode">
+
+  <header>
+    <h1>Debt Snowball Calculator</h1>
+    <div class="mode-toggle">
+      <button id="themeToggle">🌙 Dark Mode</button>
+    </div>
+  </header>
+
+  <section class="controls">
+    <h2>Enter Your Debts</h2>
+    <table id="debtTable">
+      <thead>
+        <tr>
+          <th>Debt Name</th>
+          <th>Total Amount ($CAD)</th>
+          <th>Minimum Payment ($CAD)</th>
+          <th>Interest (%)</th>
+          <th>Remove</th>
+        </tr>
+      </thead>
+      <tbody id="debtBody">
+        <tr>
+          <td><input type="text" placeholder="e.g., Credit Card" /></td>
+          <td><input type="number" min="0" step="1" /></td>
+          <td><input type="number" min="0" step="1" /></td>
+          <td><input type="number" min="0" step="0.01" /></td>
+          <td><button class="remove-btn">X</button></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <button id="addDebt">+ Add Another Debt</button>
+
+    <div class="payment-options">
+      <label for="paymentFreq">Payment Frequency:</label>
+      <select id="paymentFreq">
+        <option value="monthly">Monthly</option>
+        <option value="biweekly">Biweekly</option>
+      </select>
+
+      <label for="extraPayment">Extra Payment ($CAD):</label>
+      <input type="number" id="extraPayment" min="0" step="1" value="0" />
+
+      <button id="calculateBtn">Calculate</button>
+    </div>
+  </section>
+
+  <section class="results">
+    <h2>Results Summary</h2>
+    <div id="summary">
+      <p><strong>Total Debt:</strong> <span id="totalDebt">$0</span></p>
+      <p><strong>Total Interest Paid:</strong> <span id="totalInterest">$0</span></p>
+      <p><strong>Total Amount Paid:</strong> <span id="totalPaid">$0</span></p>
+      <p><strong>Months (or Periods) to Pay Off:</strong> <span id="totalMonths">0</span></p>
+    </div>
+  </section>
+
+  <section class="chart-section">
+    <h2>Debt Payoff Chart</h2>
+    <div class="chart-controls">
+      <label for="chartType">Chart Type:</label>
+      <select id="chartType">
+        <option value="bar">Stacked Bar Chart</option>
+        <option value="line">Line Chart</option>
+      </select>
+    </div>
+    <canvas id="debtChart"></canvas>
+  </section>
+
+  <footer>
+    <p>© 2025 Ryan O'Leary | Created to help Canadians with Debt – All values in $CAD</p>
+  </footer>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const addDebtBtn = document.getElementById("addDebt");
+      const debtBody = document.getElementById("debtBody");
+      const calculateBtn = document.getElementById("calculateBtn");
+      const totalDebtEl = document.getElementById("totalDebt");
+      const totalInterestEl = document.getElementById("totalInterest");
+      const totalPaidEl = document.getElementById("totalPaid");
+      const totalMonthsEl = document.getElementById("totalMonths");
+      const paymentFreqEl = document.getElementById("paymentFreq");
+      const extraPaymentEl = document.getElementById("extraPayment");
+      const themeToggle = document.getElementById("themeToggle");
+      const chartTypeEl = document.getElementById("chartType");
+
+      let debtChart = null;
+
+      themeToggle.addEventListener("click", () => {
+        document.body.classList.toggle("light-mode");
+        if (document.body.classList.contains("light-mode")) {
+          themeToggle.textContent = "☀️ Light Mode";
+        } else {
+          themeToggle.textContent = "🌙 Dark Mode";
+        }
+      });
+
+      addDebtBtn.addEventListener("click", () => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><input type="text" placeholder="e.g., Loan #${debtBody.children.length + 1}" /></td>
+          <td><input type="number" min="0" step="1" /></td>
+          <td><input type="number" min="0" step="1" /></td>
+          <td><input type="number" min="0" step="0.01" /></td>
+          <td><button class="remove-btn">X</button></td>
+        `;
+        debtBody.appendChild(row);
+      });
+
+      debtBody.addEventListener("click", (e) => {
+        if (e.target.classList.contains("remove-btn")) {
+          e.target.closest("tr").remove();
+        }
+      });
+
+      calculateBtn.addEventListener("click", () => {
+        const debts = [];
+        [...debtBody.children].forEach((row) => {
+          const name = row.children[0].querySelector("input").value || `Debt ${debts.length + 1}`;
+          const balance = parseInt(row.children[1].querySelector("input").value) || 0;
+          const minPayment = parseInt(row.children[2].querySelector("input").value) || 0;
+          const interestRate = parseFloat(row.children[3].querySelector("input").value) || 0;
+          if (balance > 0) debts.push({ name, balance, minPayment, interestRate });
+        });
+
+        if (debts.length === 0) {
+          alert("Please enter at least one debt.");
+          return;
+        }
+
+        const extraPayment = parseInt(extraPaymentEl.value) || 0;
+        const biweekly = paymentFreqEl.value === "biweekly";
+        const periodInterestDivisor = biweekly ? 26 : 12;
+
+        debts.sort((a, b) => a.balance - b.balance);
+
+        let totalInterest = 0;
+        let totalPaid = 0;
+        let totalDebt = debts.reduce((sum, d) => sum + d.balance, 0);
+        let months = 0;
+
+        const chartData = [];
+        const labels = [];
+
+        const balances = debts.map((d) => d.balance);
+        const minPays = debts.map((d) => d.minPayment);
+        let currentExtra = extraPayment;
+
+        while (balances.some((b) => b > 0) && months < 600) {
+          months++;
+
+          if (months <= 100) labels.push("P" + months);
+
+          for (let i = 0; i < balances.length; i++) {
+            if (balances[i] <= 0) continue;
+
+            const interest = Math.ceil(balances[i] * (debts[i].interestRate / 100 / periodInterestDivisor));
+            totalInterest += interest;
+            balances[i] += interest;
+
+            let payment = minPays[i];
+            if (i === balances.findIndex((b) => b > 0)) {
+              payment += currentExtra;
+            }
+
+            if (payment > balances[i]) payment = balances[i];
+            balances[i] -= payment;
+            totalPaid += payment;
+
+            if (balances[i] <= 0) {
+              currentExtra += minPays[i];
+              balances[i] = 0;
+            }
+          }
+
+          if (months <= 100) {
+            chartData.push([...balances]);
+          }
+        }
+
+        totalDebtEl.textContent = `$${Math.round(totalDebt).toLocaleString()}`;
+        totalInterestEl.textContent = `$${Math.round(totalInterest).toLocaleString()}`;
+        totalPaidEl.textContent = `$${Math.round(totalPaid).toLocaleString()}`;
+        totalMonthsEl.textContent = `${months}`;
+
+        const ctx = document.getElementById("debtChart").getContext("2d");
+        if (debtChart) debtChart.destroy();
+
+        const datasets =
+          chartTypeEl.value === "bar"
+            ? debts.map((d, i) => ({
+                label: d.name,
+                data: chartData.map((row) => row[i]),
+                backgroundColor: `hsl(${i * 60}, 70%, 50%)`,
+                stack: "combined",
+              }))
+            : [
+                {
+                  label: "Total Remaining Debt",
+                  data: chartData.map((row) => row.reduce((a, b) => a + b, 0)),
+                  borderColor: "#4caf50",
+                  borderWidth: 2,
+                  fill: false,
+                  tension: 0.1,
+                },
+              ];
+
+        const config =
+          chartTypeEl.value === "bar"
+            ? {
+                type: "bar",
+                data: { labels, datasets },
+                options: {
+                  responsive: true,
+                  scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } },
+                  plugins: { legend: { labels: { color: "#ccc" } } },
+                },
+              }
+            : {
+                type: "line",
+                data: { labels, datasets },
+                options: {
+                  responsive: true,
+                  scales: { y: { beginAtZero: true } },
+                  plugins: { legend: { labels: { color: "#ccc" } } },
+                },
+              };
+
+        debtChart = new Chart(ctx, config);
+      });
+    });
+  </script>
+</body>
+</html>

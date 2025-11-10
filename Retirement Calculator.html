@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Retirement Calculator – Final</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+:root{
+  --primary:#667eea; --primary-dark:#5568d3; --secondary:#764ba2; --bg-primary:#f8fafc; --bg-secondary:#fff; --text-primary:#1e293b; --border:#e2e8f0; --success:#10b981; --danger:#ef4444;
+}
+html.dark{
+  --primary:#8b9eff; --primary-dark:#7a8eef; --secondary:#9d7ac2; --bg-primary:#0f172a; --bg-secondary:#1e293b; --text-primary:#f1f5f9; --border:#334155;
+}
+*{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+body{margin:0;padding:20px;background:linear-gradient(135deg,var(--primary),var(--secondary));color:var(--text-primary);min-height:100vh;transition:background .25s}
+html.dark body{background:linear-gradient(135deg,#1e293b,#0f172a)}
+.container{max-width:1200px;margin:0 auto}
+.header{text-align:center;margin-bottom:28px}
+.logo{width:80px;height:80px;margin:0 auto 12px;border-radius:16px;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:36px;color:#fff;box-shadow:0 10px 30px rgba(0,0,0,0.12)}
+h1{color:white;margin:0;font-size:2rem}
+.subtitle{color:rgba(255,255,255,0.9);margin-top:6px}
+
+/* controls */
+.controls{position:fixed;top:14px;right:14px;display:flex;gap:8px;z-index:1400}
+.icon-btn{width:46px;height:46px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.settings-menu{display:none;position:absolute;top:56px;right:0;background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:8px;box-shadow:0 8px 30px rgba(0,0,0,0.12);min-width:220px}
+.settings-menu.show{display:block}
+.menu-item{padding:8px 10px;border-radius:8px;cursor:pointer;display:flex;gap:8px;align-items:center}
+
+/* main */
+.main-content{background:var(--bg-secondary);border-radius:14px;padding:28px;box-shadow:0 20px 40px rgba(0,0,0,0.08)}
+.section{margin-bottom:18px;border-radius:12px;overflow:hidden}
+.section-header{background:linear-gradient(135deg,var(--primary),var(--secondary));padding:12px 16px;color:#fff;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.section-content{padding:14px;background:var(--bg-primary);border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px}
+.form-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.form-group{flex:1;min-width:180px}
+label{display:block;font-weight:600;margin-bottom:6px}
+input[type=number], input[type=text], select{width:100%;padding:10px 12px;border-radius:8px;border:2px solid var(--border);background:var(--bg-secondary);color:var(--text-primary)}
+input[type=checkbox]{width:18px;height:18px}
+.btn{padding:8px 12px;border-radius:8px;border:none;cursor:pointer;font-weight:700}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff}
+.btn-secondary{background:var(--success);color:#fff}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:separate;border-spacing:0;margin-top:8px}
+thead th{background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;padding:10px;text-align:left}
+tbody td{padding:10px;border-bottom:1px solid var(--border);background:var(--bg-secondary)}
+.helper-text{font-size:13px;color:var(--text-primary);opacity:0.8}
+
+
+/* tooltip (to the right, above content) */
+.tooltip{position:relative;display:inline-block;margin-left:6px;cursor:help}
+.tooltip-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--primary);color:#fff;font-size:11px}
+.tooltiptext{visibility:hidden;opacity:0;position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);min-width:240px;background:#1e293b;color:#fff;padding:10px;border-radius:8px;z-index:9999;transition:opacity .12s}
+.tooltip:hover .tooltiptext{visibility:visible;opacity:1}
+
+/* timeline, cards */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:12px}
+.card{padding:12px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(135deg, rgba(102,126,234,0.04), rgba(118,75,162,0.03))}
+.card h3{margin:0;font-size:12px;color:var(--text-primary);opacity:0.85}
+.card .val{font-size:20px;font-weight:800;color:var(--primary);margin-top:8px}
+.timeline-container{margin-top:12px;max-height:480px;overflow:auto;border-radius:10px;border:1px solid var(--border)}
+.timeline-table{width:100%;font-size:13px}
+.timeline-table th{position:sticky;top:0;z-index:12}
+.timeline-table td{text-align:right}
+
+/* toast & loading */
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--bg-secondary);padding:10px 14px;border-radius:8px;border:1px solid var(--border);display:flex;gap:8px;align-items:center;opacity:0;transition:all .25s}
+.toast.show{opacity:1}
+.loading-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1500;align-items:center;justify-content:center}
+.loading-overlay.show{display:flex}
+.loading-content{background:var(--bg-secondary);padding:24px;border-radius:12px;border:1px solid var(--border);text-align:center}
+@media(max-width:768px){ .form-row{flex-direction:column} .controls{top:10px;right:10px} }
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-content">
+    <div style="font-weight:700;font-size:18px">Calculating your retirement plan...</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastIcon">✓</span><span id="toastMessage">Saved</span></div>
+
+<div class="controls">
+  <div style="position:relative">
+    <button class="icon-btn" id="settingsBtn">⚙️</button>
+    <div class="settings-menu" id="settingsMenu">
+      <div class="menu-item" id="saveLocalBtn">💾 &nbsp; Save to Browser</div>
+      <div class="menu-item" id="clearDataBtn">🗑️ &nbsp; Clear Data</div>
+      <div class="menu-item" id="exportBtn">📥 &nbsp; Export JSON</div>
+      <div class="menu-item" id="importBtn">📤 &nbsp; Import JSON</div>
+    </div>
+  </div>
+  <button class="icon-btn" id="darkModeBtn">🌙</button>
+</div>
+
+<input id="importFile" type="file" accept="application/json" style="display:none">
+
+<div class="container">
+  <div class="header">
+    <div class="logo">💰</div>
+    <h1>Retirement Calculator</h1>
+    <div class="subtitle">Plan your financial future with confidence</div>
+  </div>
+
+  <div class="main-content">
+
+    <div style="margin-bottom:12px">
+      <div style="height:8px;background:var(--border);border-radius:8px;overflow:hidden"><div id="progressFill" style="width:25%;height:100%;background:linear-gradient(90deg,var(--primary),var(--secondary));transition:width .25s"></div></div>
+    </div>
+
+    
+    <div class="section">
+      <div class="section-header" data-section="userSection"><div><strong>👤 Your Information</strong></div><div class="collapse-icon">▼</div></div>
+      <div class="section-content" id="userSection">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Current Age <span style="color:var(--danger)">*</span> <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Your age today. This is used as the starting point for all calculations.</span></span></label>
+            <input id="currentAge" type="number" min="0" max="120" placeholder="e.g., 43" class="required-field">
+            <div class="helper-text">Required - Enter your current age</div>
+          </div>
+          <div class="form-group">
+            <label>Retirement Age <span style="color:var(--danger)">*</span> <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">The age when you plan to stop working. Withdrawals start here.</span></span></label>
+            <input id="retirementAge" type="number" min="0" max="120" placeholder="e.g., 65" value="65" class="required-field">
+            <div class="helper-text">Required - Withdrawals begin at this age</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>CPP Start Age (60-70) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Start CPP early at 60 (reduction) or delay to 70 (increase). Age 65 = 100%.</span></span></label>
+            <input id="cppStartAge" type="number" min="60" max="70" value="65">
+          </div>
+          <div class="form-group">
+            <label>OAS Start Age (65-70) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Old Age Security starts at 65. Delay to 70 increases payments.</span></span></label>
+            <input id="oasStartAge" type="number" min="65" max="70" value="65">
+          </div>
+        </div>
+
+    <div class="form-row">
+      <div class="form-group"><label>Annual Salary <span style="color:var(--danger)">*</span> <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Your current gross income before taxes. Enter 0 if not working.</span></span></label><input id="salary" type="number" min="0" placeholder="e.g., 80000" value="0" class="required-field"></div>
+      <div class="form-group"><label>Salary Increase (% per year) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Applied at end of each year for next year's contributions.</span></span></label><input id="salaryIncrease" type="number" step="0.1" value="2"></div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group"><label>Company Match (% of salary) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Employer RRSP match (as % of salary).</span></span></label><input id="companyMatch" type="number" step="0.1" value="0"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Fixed contributions -->
+<div class="section">
+  <div class="section-header" data-section="fixedContribSection"><div><strong>💸 Fixed Contributions</strong></div><div class="collapse-icon">▼</div></div>
+  <div class="section-content" id="fixedContribSection">
+    <div class="form-row">
+      <div class="form-group"><label>Biweekly RRSP ($) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Fixed amount to RRSP every 2 weeks (26/year).</span></span></label><input id="biweeklyRRSP" type="number" min="0" step="10" value="0"></div>
+      <div class="form-group"><label>Biweekly TFSA ($) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Fixed amount to TFSA every 2 weeks (26/year).</span></span></label><input id="biweeklyTFSA" type="number" min="0" step="10" value="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Monthly RRSP ($) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Fixed monthly RRSP contribution (12/year).</span></span></label><input id="monthlyRRSP" type="number" min="0" step="10" value="0"></div>
+      <div class="form-group"><label>Monthly TFSA ($) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Fixed monthly TFSA contribution (12/year).</span></span></label><input id="monthlyTFSA" type="number" min="0" step="10" value="0"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Spouse -->
+<div class="section">
+  <div class="section-header" data-section="spouseSection"><div><strong>💑 Spouse / Partner (Optional)</strong></div><div class="collapse-icon">▼</div></div>
+  <div class="section-content" id="spouseSection">
+    <div class="form-row" style="align-items:center"><label style="display:flex;gap:10px;align-items:center;"><input type="checkbox" id="hasSpouse"> Include spouse in calculations</label></div>
+    <div class="helper-text">Check to add spouse info</div>
+    <div id="spouseInputs" style="display:none;margin-top:10px">
+      <div class="form-row">
+        <div class="form-group"><label>Spouse Age <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Spouse's current age.</span></span></label><input id="spouseAge" type="number" min="0" max="120"></div>
+        <div class="form-group"><label>Spouse Retirement Age <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Spouse's retirement age.</span></span></label><input id="spouseRetirementAge" type="number" min="0" max="120"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Spouse CPP Start Age (60-70) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">When spouse will start CPP.</span></span></label><input id="spouseCppStartAge" type="number" min="60" max="70" value="65"></div>
+        <div class="form-group"><label>Spouse OAS Start Age (65-70) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">When spouse will start OAS.</span></span></label><input id="spouseOasStartAge" type="number" min="65" max="70" value="65"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Spouse Annual Salary <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Spouse's current gross salary.</span></span></label><input id="spouseSalary" type="number" value="0"></div>
+        <div class="form-group"><label>Spouse Company Match (%) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Employer match for spouse RRSP.</span></span></label><input id="spouseCompanyMatch" type="number" step="0.1" value="0"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Spouse RRSP Balance <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Spouse's current RRSP balance.</span></span></label><input id="spouseRRSPBalance" type="number" value="0"></div>
+        <div class="form-group"><label>Spouse TFSA Balance <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Spouse's current TFSA balance.</span></span></label><input id="spouseTFSABalance" type="number" value="0"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Balances -->
+<div class="section">
+  <div class="section-header" data-section="balancesSection"><div><strong>💰 Current Balances</strong></div><div class="collapse-icon">▼</div></div>
+  <div class="section-content" id="balancesSection">
+    <div class="form-row">
+      <div class="form-group"><label>Your RRSP Balance <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Total current RRSP value. Enter 0 if starting fresh.</span></span></label><input id="rrspBalance" type="number" placeholder="e.g., 120000" value="0"></div>
+      <div class="form-group"><label>Your TFSA Balance <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Total current TFSA value. Enter 0 if starting fresh.</span></span></label><input id="tfsaBalance" type="number" placeholder="e.g., 50000" value="0"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Pension -->
+<div class="section">
+  <div class="section-header" data-section="pensionSection"><div><strong>🏢 Pension Income (Optional)</strong></div><div class="collapse-icon">▼</div></div>
+  <div class="section-content" id="pensionSection">
+    <div class="form-row"><label style="display:flex;gap:10px;align-items:center;"><input type="checkbox" id="hasPension"> I have a workplace pension</label></div>
+    <div id="pensionInputs" style="display:none;margin-top:10px">
+      <div class="form-row"><div class="form-group"><label>Annual Pension Amount ($)</label><input id="pensionAmount" type="number" min="0"></div><div class="form-group"><label>Pension Start Age</label><input id="pensionStartAge" type="number" min="0" max="120"></div></div>
+      <div class="form-row"><div class="form-group"><label>Pension Inflation Protection</label><select id="pensionIndexed"><option value="none">No inflation protection</option><option value="full">Fully indexed</option><option value="partial">Partially indexed</option></select></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Contribution/Return/Income tables (start empty) -->
+<div class="section">
+  <div class="section-header" data-section="youContribSection"><div><strong>📈 Your Contribution Rates by Age</strong></div><div class="collapse-icon">▼</div></div>
+  <div class="section-content" id="youContribSection">
+    <div class="table-wrap"><table><thead><tr><th>Age</th><th>% to RRSP</th><th>% to TFSA</th><th>Action</th></tr></thead><tbody id="youContribRows"></tbody></table></div>
+    <div style="margin-top:10px"><button class="btn btn-secondary" onclick="addYouContribRow()">➕ Add Row</button></div>
+  </div>
+</div>
+
+<div class="section" id="spouseContribSection" style="display:none">
+  <div class="section-header" data-section="spouseContribContent"><div><strong>📊 Spouse Contribution Rates by Age</strong></div><div class="collapse-icon">▼</div></div>
+  <div class="section-content" id="spouseContribContent">
+    <div class="table-wrap"><table><thead><tr><th>Age</th><th>% to RRSP</th><th>% to TFSA</th><th>Action</th></tr></thead><tbody id="spouseContribRows"></tbody></table></div>
+    <div style="margin-top:10px"><button class="btn btn-secondary" onclick="addSpouseContribRow()">➕ Add Row</button></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header" data-section="returnSection"><div><strong>📊 Investment Return by Age</strong></div><div class="collapse-icon">▼</div></div>
+  <div class="section-content" id="returnSection">
+    <div class="table-wrap"><table><thead><tr><th>Starting Age</th><th>Return Rate (% per year)</th><th>Action</th></tr></thead><tbody id="returnRows"></tbody></table></div>
+    <div style="margin-top:10px"><button class="btn btn-secondary" onclick="addReturnRow()">➕ Add Row</button></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header" data-section="retirementSettings"><div><strong>⚙️ Retirement Settings</strong></div><div class="collapse-icon">▼</div></div>
+  <div class="section-content" id="retirementSettings">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Return Type</label>
+        <select id="returnType">
+          <option value="real">Real Return (after inflation)</option>
+          <option value="nominal">Nominal Return (before inflation)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Investment Return (% per year) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext" id="returnTooltip">Real return = growth after inflation. Nominal return = total growth before inflation. For most planning, use Real Return mode.</span></span></label>
+        <input id="returnRate" type="number" step="0.1" value="4">
+      </div>
+    </div>
+    <div class="form-row"><div class="form-group"><label>Life Expectancy (age)</label><input id="lifeExpectancy" type="number" min="0" max="120" value="90"></div></div>
+    <div class="form-row"><div class="form-group"><label>Inflation (% per year) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Applied across the entire timeline; withdrawal targets are inflated annually.</span></span></label><input id="inflationRate" type="number" step="0.1" value="2"></div><div class="form-group"><label>Withdrawal Strategy</label><select id="withdrawalStrategy"><option value="tfsa-first">TFSA First</option><option value="balanced">Balanced</option><option value="rrsp-first">RRSP First</option><option value="custom">Custom</option></select></div></div>
+    <div id="customRatioRow" style="display:none;margin-top:8px"><div class="form-row"><div class="form-group"><label>TFSA Withdrawal % (remainder from RRSP)</label><input id="tfsaPercent" type="number" min="0" max="100"></div></div></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header" data-section="incomeSection"><div><strong>💵 Retirement Income Needed by Age</strong></div><div class="collapse-icon">▼</div></div>
+  <div class="section-content" id="incomeSection">
+    <div class="table-wrap"><table><thead><tr><th>Starting Age</th><th>Annual Income Needed</th><th>Action</th></tr></thead><tbody id="incomeRows"></tbody></table></div>
+    <div style="margin-top:10px"><button class="btn btn-secondary" onclick="addIncomeRow()">➕ Add Row</button></div>
+    <div class="helper-text">Base amounts will be inflation-adjusted each year automatically.</div>
+  </div>
+</div>
+
+<div style="margin-top:12px"><button class="btn btn-primary btn-full" id="calcBtn" onclick="calculate()">🚀 Calculate My Retirement Plan</button></div>
+
+    <div id="results" style="display:none;margin-top:14px">
+      <div style="text-align:center"><h2>Your Retirement Plan</h2></div>
+      <div class="card-grid" style="margin-top:8px">
+        <div class="card"><h3>Total at Retirement</h3><div class="val" id="totalRetirement">$0</div></div>
+        <div class="card"><h3>Combined RRSP</h3><div class="val" id="rrspRetirement">$0</div></div>
+        <div class="card"><h3>Combined TFSA</h3><div class="val" id="tfsaRetirement">$0</div></div>
+        <div class="card"><h3>Funds Last Until</h3><div class="val" id="fundsLastAge">Age 0</div></div>
+      </div>
+      <div class="card-grid" style="margin-top:12px">
+        <div class="card"><h3>Your CPP + OAS</h3><div class="val" id="yourGovt">$0</div></div>
+        <div class="card"><h3>Spouse CPP + OAS</h3><div class="val" id="spouseGovt">$0</div></div>
+        <div class="card" id="pensionCard" style="display:none"><h3>Annual Pension</h3><div class="val" id="pensionDisplay">$0</div></div>
+      </div>
+      <div style="text-align:center;margin-top:12px"><button class="btn btn-secondary" id="showTimelineBtn" onclick="showTimeline()">📊 Show Year-by-Year Timeline</button></div>
+    </div>
+
+    <div id="timelineSection" style="display:none;margin-top:14px">
+      <div class="section"><div class="section-header"><strong>📅 Year-by-Year Timeline</strong></div>
+        <div class="section-content">
+          <div class="timeline-container">
+            <table class="timeline-table">
+              <thead><tr><th>Age</th><th>Year</th><th style="text-align:right">RRSP</th><th style="text-align:right">TFSA</th><th style="text-align:right">Your CPP</th><th style="text-align:right">Your OAS</th><th style="text-align:right">Spouse CPP</th><th style="text-align:right">Spouse OAS</th><th style="text-align:right">Pension</th><th style="text-align:right">Total</th></tr></thead>
+              <tbody id="timelineTableBody"></tbody>
+            </table>
+          </div>
+        </div></div>
+    </div>
+
+  </div>
+
+<div style="margin-top:20px;padding:12px;border-radius:10px;background:var(--bg-primary);border:1px solid var(--border);font-size:13px;opacity:0.85;">
+  <strong>Disclaimer – Accuracy of Estimates</strong>
+  <p style="margin-top:6px;">
+    This calculator provides general retirement projections for planning purposes only. 
+    While RRSP and TFSA growth are calculated accurately based on your inputs, 
+    CPP and OAS estimates use simplified formulas that may differ from official Service Canada calculations.
+    Actual benefits depend on your lifetime earnings, contribution history, and government policy changes.
+  </p>
+  <p style="margin-top:6px;">Accuracy Summary:</p>
+  <ul style="margin-top:4px;">
+    <li><strong>RRSP / TFSA:</strong> 95–99% accurate for planning</li>
+    <li><strong>CPP:</strong> 85–95% accurate (simplified estimate)</li>
+    <li><strong>OAS:</strong> 95–100% accurate (base amount, no clawback or GIS)</li>
+    <li><strong>Pension:</strong> Accurate based on your entered values</li>
+  </ul>
+  <p style="margin-top:6px;">
+    For official figures, visit your <a href="https://www.canada.ca/en/services/benefits/publicpensions.html" target="_blank">My Service Canada Account</a>.
+  </p>
+</div>
+
+
+  <!-- ===== FOOTER SECTION ===== -->
+  <footer style="text-align:center;margin-top:20px;opacity:0.7;font-size:13px;">
+  © <span id="yearNow"></span> Ryan O'Leary | Created to help Canadians plan for retirement
+</footer>
+  <!-- =========================== -->
+
+</div>
+<script>
+/* helpers */
+function toNum(v){ const n=parseFloat(v); return isNaN(n)?0:n; }
+function showToast(msg, icon='✓'){ const t=document.getElementById('toast'); document.getElementById('toastIcon').textContent=icon; document.getElementById('toastMessage').textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+function showLoading(){ document.getElementById('loadingOverlay').classList.add('show'); }
+function hideLoading(){ document.getElementById('loadingOverlay').classList.remove('show'); }
+
+/* toggles */
+document.getElementById('settingsBtn').addEventListener('click', e=>{ e.stopPropagation(); document.getElementById('settingsMenu').classList.toggle('show'); });
+document.addEventListener('click', ()=> document.getElementById('settingsMenu').classList.remove('show'));
+document.getElementById('settingsMenu').addEventListener('click', e=> e.stopPropagation());
+document.getElementById('darkModeBtn').addEventListener('click', ()=>{ const html=document.documentElement; const isDark=html.classList.toggle('dark'); document.getElementById('darkModeBtn').textContent = isDark ? '☀️' : '🌙'; localStorage.setItem('retirement.dark', isDark ? '1' : '0'); });
+
+/* Section collapse/expand - FIXED */
+document.querySelectorAll('.section-header').forEach(header => {
+  header.addEventListener('click', function() {
+    const sectionId = this.getAttribute('data-section');
+    const content = document.getElementById(sectionId);
+    if(content) {
+      const isVisible = content.style.display !== 'none';
+      content.style.display = isVisible ? 'none' : 'block';
+      // Update arrow direction
+      const arrow = this.querySelector('.collapse-icon');
+      if(arrow) arrow.textContent = isVisible ? '▶' : '▼';
+    }
+  });
+});
+
+/* clear data (instant) */
+document.getElementById('clearDataBtn').addEventListener('click', ()=>{
+  // clear inputs (but keep defaults)
+  document.getElementById('currentAge').value = '';
+  document.getElementById('retirementAge').value = '65';
+  document.getElementById('cppStartAge').value = '65';
+  document.getElementById('oasStartAge').value = '65';
+  document.getElementById('salary').value = '0';
+  document.getElementById('salaryIncrease').value = '2';
+  document.getElementById('companyMatch').value = '0';
+  document.getElementById('biweeklyRRSP').value = '0';
+  document.getElementById('biweeklyTFSA').value = '0';
+  document.getElementById('monthlyRRSP').value = '0';
+  document.getElementById('monthlyTFSA').value = '0';
+  document.getElementById('rrspBalance').value = '0';
+  document.getElementById('tfsaBalance').value = '0';
+  document.getElementById('returnRate').value = '4';
+  document.getElementById('lifeExpectancy').value = '90';
+  document.getElementById('inflationRate').value = '2';
+  document.getElementById('withdrawalStrategy').value = 'tfsa-first';
+  document.getElementById('tfsaPercent').value = '';
+  
+  // clear checkboxes
+  document.getElementById('hasSpouse').checked = false;
+  document.getElementById('hasPension').checked = false;
+  
+  // clear tables
+  document.getElementById('youContribRows').innerHTML = '';
+  document.getElementById('spouseContribRows').innerHTML = '';
+  document.getElementById('incomeRows').innerHTML = '';
+  document.getElementById('returnRows').innerHTML = '';
+  
+  // hide optional sections & results
+  document.getElementById('spouseInputs').style.display = 'none';
+  document.getElementById('spouseContribSection').style.display = 'none';
+  document.getElementById('pensionInputs').style.display = 'none';
+  document.getElementById('pensionCard').style.display = 'none';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('timelineSection').style.display = 'none';
+  document.getElementById('customRatioRow').style.display = 'none';
+  
+  // remove saved local copy
+  try { localStorage.removeItem('retirementPlan.local'); } catch(e){}
+  
+   
+  showToast('All fields cleared','🗑️');
+  document.getElementById('settingsMenu').classList.remove('show');
+});
+
+/* Save to localStorage (no download) */
+function saveToLocalStorage() {
+  try {
+    const data = JSON.stringify(gatherAllInputs());
+    localStorage.setItem('retirementPlan.local', data);
+    showToast('Saved to browser storage','💾');
+    document.getElementById('settingsMenu').classList.remove('show');
+    return true;
+  } catch (e) {
+    console.error('Local save failed', e);
+    showToast('Save failed','❌');
+    return false;
+  }
+}
+document.getElementById('saveLocalBtn').addEventListener('click', () => { saveToLocalStorage(); });
+
+/* Export with descriptive filename */
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  try{
+    const data = gatherAllInputs();
+    const raw = JSON.stringify(data, null, 2);
+    const blob = new Blob([raw], { type:'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    // Create filename with age and date
+    const age = data.currentAge || 'unknown';
+    const today = new Date();
+    const dateStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const filename = `retirement-plan-age-${age}-${dateStr}.json`;
+    
+    const a = document.createElement('a'); 
+    a.href = url; 
+    a.download = filename; 
+    document.body.appendChild(a); 
+    a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },1500);
+    showToast('Export started','📥');
+  }catch(e){ console.error(e); alert('Export failed'); }
+  document.getElementById('settingsMenu').classList.remove('show');
+});
+
+/* Import (populate form but do NOT autosave) */
+document.getElementById('importBtn').addEventListener('click', ()=>{ const f=document.getElementById('importFile'); f.value=null; f.click(); document.getElementById('settingsMenu').classList.remove('show'); });
+document.getElementById('importFile').addEventListener('change', function(e){ const f=e.target.files && e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ const o=JSON.parse(r.result); populateAllFromData(o); showToast('Imported','📤'); }catch(err){ alert('Invalid JSON file'); } }; r.readAsText(f); });
+
+/* toggles with UI show/hide */
+document.getElementById('hasSpouse').addEventListener('change', function(){ const checked=this.checked; document.getElementById('spouseInputs').style.display = checked ? 'block':'none'; document.getElementById('spouseContribSection').style.display = checked ? 'block':'none'; });
+document.getElementById('hasPension').addEventListener('change', function(){ document.getElementById('pensionInputs').style.display = this.checked ? 'block':'none'; document.getElementById('pensionCard').style.display = this.checked ? 'block':'none'; });
+document.getElementById('withdrawalStrategy').addEventListener('change', function(){ document.getElementById('customRatioRow').style.display = this.value==='custom'?'flex':'none'; });
+
+/* Return type toggle - update defaults and help text */
+document.getElementById('returnType').addEventListener('change', function(){
+  const isReal = this.value === 'real';
+  const returnInput = document.getElementById('returnRate');
+  const tooltip = document.getElementById('returnTooltip');
+  
+  if(isReal) {
+    // Suggest typical real return (4% after inflation)
+    if(returnInput.value == '6') returnInput.value = '4';
+    tooltip.textContent = 'Real return = growth after inflation. Example: 4% real return means your money grows 4% faster than inflation. This stays constant regardless of inflation rate.';
+  } else {
+    // Suggest typical nominal return (6% before inflation)
+    if(returnInput.value == '4') returnInput.value = '6';
+    tooltip.textContent = 'Nominal return = total growth before inflation. Example: 6% nominal with 2% inflation = 4% real. You must adjust this when inflation changes!';
+  }
+});
+
+/* row functions (same as original) */
+window.removeRow = function(btn){ const r=btn.parentNode.parentNode; r.parentNode.removeChild(r); }
+window.addYouContribRow = function(a='', r='', t=''){ const tbody=document.getElementById('youContribRows'); const row=tbody.insertRow(); row.innerHTML=`<td><input class="age-input" type="number" min="0" value="${a}" placeholder="Age"></td><td><input class="you-rrsp-input" type="number" step="0.1" value="${r}" placeholder="%"></td><td><input class="you-tfsa-input" type="number" step="0.1" value="${t}" placeholder="%"></td><td><button class="btn" style="background:var(--danger);color:#fff" onclick="removeRow(this)">✕</button></td>`; }
+window.addSpouseContribRow = function(a='', r='', t=''){ const tbody=document.getElementById('spouseContribRows'); const row=tbody.insertRow(); row.innerHTML=`<td><input class="age-input" type="number" min="0" value="${a}" placeholder="Age"></td><td><input class="sp-rrsp-input" type="number" step="0.1" value="${r}" placeholder="%"></td><td><input class="sp-tfsa-input" type="number" step="0.1" value="${t}" placeholder="%"></td><td><button class="btn" style="background:var(--danger);color:#fff" onclick="removeRow(this)">✕</button></td>`; }
+window.addIncomeRow = function(a='', i=''){ const tbody=document.getElementById('incomeRows'); const row=tbody.insertRow(); row.innerHTML=`<td><input class="age-input" type="number" min="0" value="${a}" placeholder="Age"></td><td><input class="income-input" type="number" step="100" value="${i}" placeholder="$"></td><td><button class="btn" style="background:var(--danger);color:#fff" onclick="removeRow(this)">✕</button></td>`; }
+window.addReturnRow = function(a='', r=''){ const tbody=document.getElementById('returnRows'); const row=tbody.insertRow(); row.innerHTML=`<td><input class="age-input" type="number" min="0" value="${a}" placeholder="Age"></td><td><input class="return-input" type="number" step="0.1" value="${r}" placeholder="%"></td><td><button class="btn" style="background:var(--danger);color:#fff" onclick="removeRow(this)">✕</button></td>`; }
+
+/* read tables */
+function readContribTable(tb, rs, ts){ const rows=document.querySelectorAll(tb+' tr'); const arr=[]; rows.forEach(r=>{ const ai=r.querySelector('.age-input'); if(!ai) return; const age=parseInt(ai.value); if(isNaN(age)) return; const ri=r.querySelector(rs); const ti=r.querySelector(ts); arr.push({age:age, rrspRate: toNum(ri?ri.value:0)/100, tfsaRate: toNum(ti?ti.value:0)/100}); }); arr.sort((a,b)=>a.age-b.age); return arr; }
+function readReturnTable(){ const rows=document.querySelectorAll('#returnRows tr'); const arr=[]; rows.forEach(r=>{ const ai=r.querySelector('.age-input'); const ri=r.querySelector('.return-input'); if(!ai||!ri) return; const age=parseInt(ai.value); if(isNaN(age)) return; arr.push({age:age, rate: toNum(ri.value)/100}); }); arr.sort((a,b)=>a.age-b.age); return arr; }
+function getRatesForAge(age, arr){ if(!arr||arr.length===0) return {rrspRate:0, tfsaRate:0}; let res=arr[0]; for(let i=0;i<arr.length;i++){ if(age>=arr[i].age) res=arr[i]; } return {rrspRate: res.rrspRate||0, tfsaRate: res.tfsaRate||0}; }
+function getReturnRateForAge(age, arr, defaultRate){ if(!arr||arr.length===0) return defaultRate; let rate=defaultRate; for(let i=0;i<arr.length;i++){ if(age>=arr[i].age) rate=arr[i].rate; else break; } return rate; }
+
+/* validation - IMPROVED */
+function validateInputs(){ 
+  const errors=[]; 
+  const ca=parseInt(document.getElementById('currentAge').value); 
+  const ra=parseInt(document.getElementById('retirementAge').value); 
+  const sal=document.getElementById('salary').value;
+  const biweeklyRRSP = toNum(document.getElementById('biweeklyRRSP').value);
+  const biweeklyTFSA = toNum(document.getElementById('biweeklyTFSA').value);
+  const monthlyRRSP = toNum(document.getElementById('monthlyRRSP').value);
+  const monthlyTFSA = toNum(document.getElementById('monthlyTFSA').value);
+  
+  document.querySelectorAll('.error').forEach(e=>e.classList.remove('error')); 
+  document.querySelectorAll('.error-msg').forEach(e=>e.remove()); 
+  
+  // Required: Current Age
+  if(isNaN(ca)||ca<0||ca>120) errors.push({field:'currentAge',msg:'Current age is required (0-120)'}); 
+  
+  // Required: Retirement Age
+  if(isNaN(ra)||ra<0||ra>120) errors.push({field:'retirementAge',msg:'Retirement age is required (0-120)'}); 
+  
+  // Required: Current age must be less than retirement age
+  if(!isNaN(ca)&&!isNaN(ra)&&ca>=ra) errors.push({field:'retirementAge',msg:'Retirement age must be greater than current age'}); 
+  
+  // Required: Salary (can be 0, but must be entered)
+  if(sal === '' || sal === null || sal === undefined) errors.push({field:'salary',msg:'Annual salary is required (enter 0 if not working)'});
+  if(sal !== '' && toNum(sal)<0) errors.push({field:'salary',msg:'Salary cannot be negative'});
+  
+  // Warning: No contributions entered
+  const hasContributions = biweeklyRRSP > 0 || biweeklyTFSA > 0 || monthlyRRSP > 0 || monthlyTFSA > 0;
+  if(!hasContributions && toNum(sal) === 0) {
+    errors.push({field:'biweeklyRRSP',msg:'You have no salary and no contributions - nothing to calculate!'});
+  }
+  
+  errors.forEach(er=>{ 
+    const f=document.getElementById(er.field); 
+    if(f){ 
+      f.classList.add('error'); 
+      const m=document.createElement('div'); 
+      m.className='error-msg'; 
+      m.style.color='var(--danger)'; 
+      m.textContent='⚠️ '+er.msg; 
+      f.parentNode.appendChild(m); 
+    } 
+  }); 
+  
+  if(errors.length>0){ 
+    showToast('Please fix validation errors','⚠️'); 
+    // Scroll to first error
+    const firstError = document.querySelector('.error');
+    if(firstError) firstError.scrollIntoView({behavior: 'smooth', block: 'center'});
+    return false; 
+  } 
+  return true; 
+}
+
+/* gather/populate */
+function gatherAllInputs(){ const d={ currentAge: document.getElementById('currentAge').value, retirementAge: document.getElementById('retirementAge').value, cppStartAge: document.getElementById('cppStartAge').value, oasStartAge: document.getElementById('oasStartAge').value, salary: document.getElementById('salary').value, salaryIncrease: document.getElementById('salaryIncrease').value, companyMatch: document.getElementById('companyMatch').value, biweeklyRRSP: document.getElementById('biweeklyRRSP').value, biweeklyTFSA: document.getElementById('biweeklyTFSA').value, monthlyRRSP: document.getElementById('monthlyRRSP').value, monthlyTFSA: document.getElementById('monthlyTFSA').value, hasSpouse: document.getElementById('hasSpouse').checked, spouseAge: document.getElementById('spouseAge').value, spouseRetirementAge: document.getElementById('spouseRetirementAge').value, spouseCppStartAge: document.getElementById('spouseCppStartAge')?document.getElementById('spouseCppStartAge').value:'', spouseOasStartAge: document.getElementById('spouseOasStartAge')?document.getElementById('spouseOasStartAge').value:'', spouseSalary: document.getElementById('spouseSalary')?document.getElementById('spouseSalary').value:'', spouseCompanyMatch: document.getElementById('spouseCompanyMatch')?document.getElementById('spouseCompanyMatch').value:'', spouseRRSPBalance: document.getElementById('spouseRRSPBalance')?document.getElementById('spouseRRSPBalance').value:'', spouseTFSABalance: document.getElementById('spouseTFSABalance')?document.getElementById('spouseTFSABalance').value:'', rrspBalance: document.getElementById('rrspBalance').value, tfsaBalance: document.getElementById('tfsaBalance').value, returnRate: document.getElementById('returnRate').value, returnType: document.getElementById('returnType').value, lifeExpectancy: document.getElementById('lifeExpectancy').value, inflationRate: document.getElementById('inflationRate').value, withdrawalStrategy: document.getElementById('withdrawalStrategy').value, tfsaPercent: document.getElementById('tfsaPercent').value, hasPension: document.getElementById('hasPension').checked, pensionAmount: document.getElementById('pensionAmount').value, pensionStartAge: document.getElementById('pensionStartAge').value, pensionIndexed: document.getElementById('pensionIndexed').value }; d.youContrib=[]; document.querySelectorAll('#youContribRows tr').forEach(r=>{ const ai=r.querySelector('.age-input'); if(!ai) return; const ri=r.querySelector('.you-rrsp-input'); const ti=r.querySelector('.you-tfsa-input'); d.youContrib.push({age:ai.value, rrsp:ri?ri.value:'', tfsa:ti?ti.value:''}); }); d.spouseContrib=[]; document.querySelectorAll('#spouseContribRows tr').forEach(r=>{ const ai=r.querySelector('.age-input'); if(!ai) return; const ri=r.querySelector('.sp-rrsp-input'); const ti=r.querySelector('.sp-tfsa-input'); d.spouseContrib.push({age:ai.value, rrsp:ri?ri.value:'', tfsa:ti?ti.value:''}); }); d.incomeRows=[]; document.querySelectorAll('#incomeRows tr').forEach(r=>{ const ai=r.querySelector('.age-input'); const ii=r.querySelector('.income-input'); if(!ai) return; d.incomeRows.push({age:ai.value, income: ii?ii.value:''}); }); d.returnRows=[]; document.querySelectorAll('#returnRows tr').forEach(r=>{ const ai=r.querySelector('.age-input'); const ri=r.querySelector('.return-input'); if(!ai) return; d.returnRows.push({age:ai.value, rate:ri?ri.value:''}); }); return d; }
+
+function populateAllFromData(d){ if(!d) return; try{ if('currentAge' in d) document.getElementById('currentAge').value=d.currentAge; if('retirementAge' in d) document.getElementById('retirementAge').value=d.retirementAge; if('cppStartAge' in d) document.getElementById('cppStartAge').value=d.cppStartAge; if('oasStartAge' in d) document.getElementById('oasStartAge').value=d.oasStartAge; if('salary' in d) document.getElementById('salary').value=d.salary; if('salaryIncrease' in d) document.getElementById('salaryIncrease').value=d.salaryIncrease; if('companyMatch' in d) document.getElementById('companyMatch').value=d.companyMatch; if('biweeklyRRSP' in d) document.getElementById('biweeklyRRSP').value=d.biweeklyRRSP; if('biweeklyTFSA' in d) document.getElementById('biweeklyTFSA').value=d.biweeklyTFSA; if('monthlyRRSP' in d) document.getElementById('monthlyRRSP').value=d.monthlyRRSP; if('monthlyTFSA' in d) document.getElementById('monthlyTFSA').value=d.monthlyTFSA; if('hasSpouse' in d) document.getElementById('hasSpouse').checked = d.hasSpouse; if('spouseAge' in d) document.getElementById('spouseAge').value=d.spouseAge; if('spouseRetirementAge' in d) document.getElementById('spouseRetirementAge').value=d.spouseRetirementAge; if('spouseCppStartAge' in d && document.getElementById('spouseCppStartAge')) document.getElementById('spouseCppStartAge').value=d.spouseCppStartAge; if('spouseOasStartAge' in d && document.getElementById('spouseOasStartAge')) document.getElementById('spouseOasStartAge').value=d.spouseOasStartAge; if('spouseSalary' in d && document.getElementById('spouseSalary')) document.getElementById('spouseSalary').value=d.spouseSalary; if('spouseCompanyMatch' in d && document.getElementById('spouseCompanyMatch')) document.getElementById('spouseCompanyMatch').value=d.spouseCompanyMatch; if('spouseRRSPBalance' in d && document.getElementById('spouseRRSPBalance')) document.getElementById('spouseRRSPBalance').value=d.spouseRRSPBalance; if('spouseTFSABalance' in d && document.getElementById('spouseTFSABalance')) document.getElementById('spouseTFSABalance').value=d.spouseTFSABalance; if('rrspBalance' in d) document.getElementById('rrspBalance').value=d.rrspBalance; if('tfsaBalance' in d) document.getElementById('tfsaBalance').value=d.tfsaBalance; if('returnRate' in d) document.getElementById('returnRate').value=d.returnRate; if('returnType' in d) document.getElementById('returnType').value=d.returnType; if('lifeExpectancy' in d) document.getElementById('lifeExpectancy').value=d.lifeExpectancy; if('inflationRate' in d) document.getElementById('inflationRate').value=d.inflationRate; if('withdrawalStrategy' in d) document.getElementById('withdrawalStrategy').value=d.withdrawalStrategy; if('tfsaPercent' in d) document.getElementById('tfsaPercent').value=d.tfsaPercent; if('hasPension' in d) document.getElementById('hasPension').checked=d.hasPension; if('pensionAmount' in d) document.getElementById('pensionAmount').value=d.pensionAmount; if('pensionStartAge' in d) document.getElementById('pensionStartAge').value=d.pensionStartAge; if('pensionIndexed' in d) document.getElementById('pensionIndexed').value=d.pensionIndexed; }catch(err){console.warn(err);} document.getElementById('spouseInputs').style.display = document.getElementById('hasSpouse').checked ? 'block' : 'none'; document.getElementById('spouseContribSection').style.display = document.getElementById('hasSpouse').checked ? 'block' : 'none'; document.getElementById('pensionInputs').style.display = document.getElementById('hasPension').checked ? 'block' : 'none'; document.getElementById('customRatioRow').style.display = document.getElementById('withdrawalStrategy').value === 'custom' ? 'flex' : 'none'; document.getElementById('youContribRows').innerHTML=''; document.getElementById('spouseContribRows').innerHTML=''; document.getElementById('incomeRows').innerHTML=''; document.getElementById('returnRows').innerHTML=''; if(Array.isArray(d.youContrib)) d.youContrib.forEach(r=>addYouContribRow(r.age||'', r.rrsp||'', r.tfsa||'')); if(Array.isArray(d.spouseContrib)) d.spouseContrib.forEach(r=>addSpouseContribRow(r.age||'', r.rrsp||'', r.tfsa||'')); if(Array.isArray(d.incomeRows)) d.incomeRows.forEach(r=>addIncomeRow(r.age||'', r.income||'')); if(Array.isArray(d.returnRows)) d.returnRows.forEach(r=>addReturnRow(r.age||'', r.rate||'')); showToast('Data loaded successfully','✓'); }
+
+/* Calculation logic */
+function calculate(){ if(!validateInputs()) return; showLoading(); setTimeout(()=>{ try{ performCalculation(); hideLoading(); }catch(e){ console.error(e); hideLoading(); showToast('Calculation error','❌'); } },300); }
+
+function performCalculation(){
+  const currentAge = parseInt(document.getElementById('currentAge').value) || 0;
+  const retirementAge = parseInt(document.getElementById('retirementAge').value) || 65;
+  const cppStartAge = parseInt(document.getElementById('cppStartAge').value) || 65;
+  const oasStartAge = parseInt(document.getElementById('oasStartAge').value) || 65;
+  const initialSalaryYou = toNum(document.getElementById('salary').value);
+  const salaryIncrease = (toNum(document.getElementById('salaryIncrease').value)||0)/100;
+  const companyMatch = (toNum(document.getElementById('companyMatch').value)||0)/100;
+  const biweeklyRRSP = toNum(document.getElementById('biweeklyRRSP').value);
+  const biweeklyTFSA = toNum(document.getElementById('biweeklyTFSA').value);
+  const monthlyRRSP = toNum(document.getElementById('monthlyRRSP').value);
+  const monthlyTFSA = toNum(document.getElementById('monthlyTFSA').value);
+  const annualRRSPFixed = (biweeklyRRSP*26) + (monthlyRRSP*12);
+  const annualTFSAFixed = (biweeklyTFSA*26) + (monthlyTFSA*12);
+  const hasSpouse = document.getElementById('hasSpouse').checked;
+  const spouseAge = hasSpouse ? (parseInt(document.getElementById('spouseAge').value)||0) : 0;
+  const spouseRetAge = hasSpouse ? (parseInt(document.getElementById('spouseRetirementAge').value)||65) : 65;
+  const spouseCppStartAge = hasSpouse ? (parseInt(document.getElementById('spouseCppStartAge').value)||65) : 65;
+  const spouseOasStartAge = hasSpouse ? (parseInt(document.getElementById('spouseOasStartAge').value)||65) : 65;
+  const initialSalarySp = hasSpouse ? toNum(document.getElementById('spouseSalary').value) : 0;
+  const spouseCompanyMatch = hasSpouse ? (toNum(document.getElementById('spouseCompanyMatch').value)||0)/100 : 0;
+  let rrspYou = toNum(document.getElementById('rrspBalance').value);
+  let tfsaYou = toNum(document.getElementById('tfsaBalance').value);
+  let rrspSp = toNum(document.getElementById('spouseRRSPBalance').value);
+  let tfsaSp = toNum(document.getElementById('spouseTFSABalance').value);
+  const defaultReturnRate = (toNum(document.getElementById('returnRate').value)||0)/100;
+  const returnType = document.getElementById('returnType').value;
+  const inflationRate = (toNum(document.getElementById('inflationRate').value)||0)/100;
+  
+  // Calculate effective return rate based on type
+  const effectiveDefaultReturn = returnType === 'real' ? defaultReturnRate + inflationRate : defaultReturnRate;
+  
+  const lifeExpect = parseInt(document.getElementById('lifeExpectancy').value)||90;
+  const hasPension = document.getElementById('hasPension').checked;
+  const pensionAmount = hasPension ? toNum(document.getElementById('pensionAmount').value) : 0;
+  const pensionStartAge = hasPension ? (parseInt(document.getElementById('pensionStartAge').value)||retirementAge) : retirementAge;
+  const pensionIndexed = hasPension ? document.getElementById('pensionIndexed').value : 'none';
+  const youTable = readContribTable('#youContribRows', '.you-rrsp-input', '.you-tfsa-input');
+  const spTable = readContribTable('#spouseContribRows', '.sp-rrsp-input', '.sp-tfsa-input');
+  const returnTable = readReturnTable();
+
+  // build income base rows
+  const incomeBase = Array.from(document.querySelectorAll('#incomeRows tr')).map(r=>{ const ai=r.querySelector('.age-input'); const ii=r.querySelector('.income-input'); if(!ai) return null; const age=parseInt(ai.value); if(isNaN(age)) return null; return {baseAge:age, amount: toNum(ii?ii.value:0)}; }).filter(x=>x).sort((a,b)=>a.baseAge-b.baseAge);
+  function incomeForAge(age){
+    if(incomeBase.length===0) return null;
+    let res = incomeBase[0];
+    for(let i=0;i<incomeBase.length;i++){ if(age>=incomeBase[i].baseAge) res=incomeBase[i]; else break; }
+    return res;
+  }
+
+  // estimate CPP/OAS base amounts
+  let yearlyEarningsYou=[]; let tempSalary=initialSalaryYou;
+  for(let age=currentAge; age<retirementAge; age++){ const cppMaxEarnings=68500; const cppEarnings=Math.min(tempSalary, cppMaxEarnings); yearlyEarningsYou.push(cppEarnings); tempSalary *= (1 + salaryIncrease); }
+  yearlyEarningsYou.sort((a,b)=>b-a); const bestYearsYou = Math.min(39, yearlyEarningsYou.length); const bestEarningsYou = yearlyEarningsYou.slice(0,bestYearsYou); const totalBestEarningsYou = bestEarningsYou.reduce((s,v)=>s+v,0); const avgCppEarningsYou = bestYearsYou>0 ? totalBestEarningsYou / bestYearsYou : 0; const baseCppYou = Math.min(16375, avgCppEarningsYou * 0.25); const baseOas = 8480; const cppYouFactor = cppStartAge<65 ? 1 - ((65-cppStartAge)*0.072) : 1 + ((cppStartAge-65)*0.084); const cppYou = baseCppYou * cppYouFactor; const oasYouFactor = oasStartAge>65 ? 1 + ((oasStartAge-65)*0.072) : 1; const oas = baseOas * oasYouFactor; const baseCppYouAmount = cppYou; const baseOasAmount = oas;
+  let baseSpouseCppAmount = 0; let baseSpouseOasAmount = 0;
+  if(hasSpouse){
+    let yearlyEarningsSp=[]; let tempSalarySp=initialSalarySp;
+    for(let age=spouseAge; age<spouseRetAge; age++){ const cppMaxEarnings=68500; const cppEarnings=Math.min(tempSalarySp, cppMaxEarnings); yearlyEarningsSp.push(cppEarnings); tempSalarySp *= (1 + salaryIncrease); }
+    yearlyEarningsSp.sort((a,b)=>b-a); const bestYearsSp = Math.min(39, yearlyEarningsSp.length); const bestEarningsSp = yearlyEarningsSp.slice(0,bestYearsSp); const totalBestEarningsSp = bestEarningsSp.reduce((s,v)=>s+v,0); const avgCppEarningsSp = bestYearsSp>0 ? totalBestEarningsSp / bestYearsSp : 0; const baseCppSp = Math.min(16375, avgCppEarningsSp * 0.25); const spouseCppFactor = spouseCppStartAge < 65 ? 1 - ((65 - spouseCppStartAge) * 0.072) : 1 + ((spouseCppStartAge - 65) * 0.084); const cppSp = baseCppSp * spouseCppFactor; const spouseOasFactor = spouseOasStartAge > 65 ? 1 + ((spouseOasStartAge - 65) * 0.072) : 1; const oasSp = baseOas * spouseOasFactor; baseSpouseCppAmount = cppSp; baseSpouseOasAmount = oasSp;
+  }
+
+  // accumulation phase
+  let salaryYou = initialSalaryYou;
+  let salarySp = initialSalarySp;
+  const timelineData = [];
+  const curYear = new Date().getFullYear();
+
+  for(let age=currentAge; age<retirementAge; age++){
+    const returnRate = getReturnRateForAge(age, returnTable, effectiveDefaultReturn);
+    const youRates = getRatesForAge(age, youTable);
+    const spRates = getRatesForAge(age, spTable);
+
+    const yourRRSPContrib = (salaryYou * (youRates.rrspRate || 0)) + annualRRSPFixed;
+    const yourTFSAContrib = (salaryYou * (youRates.tfsaRate || 0)) + annualTFSAFixed;
+    const yourMatch = Math.min(yourRRSPContrib, salaryYou * (companyMatch || 0));
+
+    let spRRSPContrib=0, spTFSAContrib=0, spMatch=0;
+    if(hasSpouse){ 
+      spRRSPContrib = salarySp * (spRates.rrspRate || 0); 
+      spTFSAContrib = salarySp * (spRates.tfsaRate || 0); 
+      spMatch = Math.min(spRRSPContrib, salarySp * (spouseCompanyMatch || 0)); 
+    }
+
+    rrspYou += yourRRSPContrib + yourMatch; 
+    tfsaYou += yourTFSAContrib;
+    rrspSp += spRRSPContrib + spMatch; 
+    tfsaSp += spTFSAContrib;
+
+    rrspYou *= (1 + returnRate); 
+    tfsaYou *= (1 + returnRate); 
+    rrspSp *= (1 + returnRate); 
+    tfsaSp *= (1 + returnRate);
+
+    const yourCPPYear = age >= cppStartAge ? baseCppYouAmount * Math.pow(1 + inflationRate, age - cppStartAge) : 0;
+    const yourOASYear = age >= oasStartAge ? baseOasAmount * Math.pow(1 + inflationRate, age - oasStartAge) : 0;
+    const spCPPYear = (hasSpouse && (spouseAge + (age - currentAge) >= spouseCppStartAge)) ? baseSpouseCppAmount * Math.pow(1 + inflationRate, (spouseAge + (age - currentAge)) - spouseCppStartAge) : 0;
+    const spOASYear = (hasSpouse && (spouseAge + (age - currentAge) >= spouseOasStartAge)) ? baseSpouseOasAmount * Math.pow(1 + inflationRate, (spouseAge + (age - currentAge)) - spouseOasStartAge) : 0;
+
+    let pensionYear = 0;
+    if(hasPension && age >= pensionStartAge){
+      const yrs = age - pensionStartAge;
+      if(pensionIndexed === 'full') pensionYear = pensionAmount * Math.pow(1 + inflationRate, yrs);
+      else if(pensionIndexed === 'partial') pensionYear = pensionAmount * Math.pow(1 + inflationRate * 0.5, yrs);
+      else pensionYear = pensionAmount;
+    }
+
+    const accumTotal = rrspYou + rrspSp + tfsaYou + tfsaSp + yourCPPYear + yourOASYear + spCPPYear + spOASYear + pensionYear;
+
+    timelineData.push({
+      age: age,
+      year: curYear + (age - currentAge),
+      rrspCombined: rrspYou + rrspSp,
+      tfsaCombined: tfsaYou + tfsaSp,
+      yourCPP: yourCPPYear,
+      yourOAS: yourOASYear,
+      spCPP: spCPPYear,
+      spOAS: spOASYear,
+      pension: pensionYear,
+      total: accumTotal
+    });
+
+    salaryYou *= (1 + salaryIncrease);
+    if(hasSpouse) salarySp *= (1 + salaryIncrease);
+  }
+  
+  // withdrawal phase
+  let rrspYou_post = rrspYou, tfsaYou_post = tfsaYou, rrspSp_post = rrspSp, tfsaSp_post = tfsaSp;
+  let fundsLastAge = retirementAge;
+  let tfsaRatio = 0;
+  if(document.getElementById('withdrawalStrategy').value === 'tfsa-first') tfsaRatio = 1;
+  else if(document.getElementById('withdrawalStrategy').value === 'balanced') tfsaRatio = 0.5;
+  else if(document.getElementById('withdrawalStrategy').value === 'rrsp-first') tfsaRatio = 0;
+  else tfsaRatio = (toNum(document.getElementById('tfsaPercent').value)||0)/100;
+
+  for(let age=retirementAge; age<=lifeExpect; age++){
+    const entry = incomeForAge(age);
+    let incomeNeeded=0;
+    if(entry){
+      const yearsSinceBase = Math.max(0, age - entry.baseAge);
+      incomeNeeded = entry.amount * Math.pow(1 + inflationRate, yearsSinceBase);
+    }else{
+      const retEntry = incomeForAge(retirementAge);
+      if(retEntry){
+        const yrs = Math.max(0, age - retEntry.baseAge);
+        incomeNeeded = retEntry.amount * Math.pow(1 + inflationRate, yrs);
+      } else {
+        const yrs = Math.max(0, age - retirementAge);
+        incomeNeeded = 40000 * Math.pow(1 + inflationRate, yrs);
+      }
+    }
+
+    const returnRate = getReturnRateForAge(age, returnTable, effectiveDefaultReturn);
+    const yourCPPYear = age >= cppStartAge ? baseCppYouAmount * Math.pow(1 + inflationRate, age - cppStartAge) : 0;
+    const yourOASYear = age >= oasStartAge ? baseOasAmount * Math.pow(1 + inflationRate, age - oasStartAge) : 0;
+    const spCPPYear = (hasSpouse && (spouseAge + (age - currentAge) >= spouseCppStartAge)) ? baseSpouseCppAmount * Math.pow(1 + inflationRate, (spouseAge + (age - currentAge)) - spouseCppStartAge) : 0;
+    const spOASYear = (hasSpouse && (spouseAge + (age - currentAge) >= spouseOasStartAge)) ? baseSpouseOasAmount * Math.pow(1 + inflationRate, (spouseAge + (age - currentAge)) - spouseOasStartAge) : 0;
+
+    let pensionYear = 0;
+    if(hasPension && age >= pensionStartAge){
+      const yrs = age - pensionStartAge;
+      if(pensionIndexed === 'full') pensionYear = pensionAmount * Math.pow(1 + inflationRate, yrs);
+      else if(pensionIndexed === 'partial') pensionYear = pensionAmount * Math.pow(1 + inflationRate * 0.5, yrs);
+      else pensionYear = pensionAmount;
+    }
+
+    const govtIncome = yourCPPYear + yourOASYear + spCPPYear + spOASYear + pensionYear;
+    let need = Math.max(0, incomeNeeded - govtIncome);
+
+    const rrspCombined = rrspYou_post + rrspSp_post;
+    const tfsaCombined = tfsaYou_post + tfsaSp_post;
+    
+    rrspYou_post *= (1 + returnRate);
+    rrspSp_post *= (1 + returnRate);
+    tfsaYou_post *= (1 + returnRate);
+    tfsaSp_post *= (1 + returnRate);
+    
+    const rrspCombinedGrown = rrspYou_post + rrspSp_post;
+    const tfsaCombinedGrown = tfsaYou_post + tfsaSp_post;
+
+    const desiredFromTFSA = Math.min(tfsaCombinedGrown, need * tfsaRatio);
+    let takeYouTFSA = Math.min(tfsaYou_post, desiredFromTFSA);
+    let takeSpTFSA = Math.max(0, desiredFromTFSA - takeYouTFSA);
+    tfsaYou_post = Math.max(0, tfsaYou_post - takeYouTFSA);
+    tfsaSp_post = Math.max(0, tfsaSp_post - takeSpTFSA);
+    need -= (takeYouTFSA + takeSpTFSA);
+
+    if(need > 0 && rrspCombinedGrown > 0){
+      let taxRate = 0.25;
+      const totalIncome = govtIncome + incomeNeeded;
+      if(totalIncome > 100000) taxRate = 0.35;
+      else if(totalIncome > 50000) taxRate = 0.30;
+      else if(totalIncome > 20000) taxRate = 0.25;
+      else taxRate = 0.20;
+      const grossNeeded = need / (1 - taxRate);
+      const takeRRSP = Math.min(rrspCombinedGrown, grossNeeded);
+      const rrspTotal = rrspCombinedGrown;
+      const takeYouR = rrspTotal>0 ? (rrspYou_post / rrspTotal) * takeRRSP : 0;
+      const takeSpR = rrspTotal>0 ? (rrspSp_post / rrspTotal) * takeRRSP : 0;
+      rrspYou_post = Math.max(0, rrspYou_post - takeYouR);
+      rrspSp_post = Math.max(0, rrspSp_post - takeSpR);
+      need -= (takeRRSP * (1 - taxRate));
+    }
+
+    const tfsaLeftCombined = tfsaYou_post + tfsaSp_post;
+    if(need > 0 && tfsaLeftCombined > 0){
+      const extra = Math.min(tfsaLeftCombined, need);
+      const totalLeftTFSA = tfsaLeftCombined;
+      const exYou = totalLeftTFSA>0 ? (tfsaYou_post / totalLeftTFSA) * extra : 0;
+      const exSp = Math.max(0, extra - exYou);
+      tfsaYou_post = Math.max(0, tfsaYou_post - exYou);
+      tfsaSp_post = Math.max(0, tfsaSp_post - exSp);
+      need -= extra;
+    }
+
+    const totalCombined = rrspYou_post + rrspSp_post + tfsaYou_post + tfsaSp_post;
+    const displayedTotal = totalCombined + yourCPPYear + yourOASYear + spCPPYear + spOASYear + pensionYear;
+
+    timelineData.push({
+      age: age,
+      year: curYear + (age - currentAge),
+      rrspCombined: rrspYou_post + rrspSp_post,
+      tfsaCombined: tfsaYou_post + tfsaSp_post,
+      yourCPP: yourCPPYear,
+      yourOAS: yourOASYear,
+      spCPP: spCPPYear,
+      spOAS: spOASYear,
+      pension: pensionYear,
+      total: displayedTotal
+    });
+
+    if(totalCombined > 1000) fundsLastAge = age;
+    if(totalCombined <= 1){ fundsLastAge = age; break; }
+  }
+
+  // update UI
+  const atRet = timelineData.find(t=>t.age===retirementAge) || timelineData[timelineData.length-1] || {rrspCombined:0, tfsaCombined:0, yourCPP:0, yourOAS:0, pension:0};
+  document.getElementById('totalRetirement').textContent = Math.round(atRet.rrspCombined + atRet.tfsaCombined + (atRet.yourCPP||0) + (atRet.yourOAS||0) + (atRet.pension||0)).toLocaleString();
+  document.getElementById('rrspRetirement').textContent = Math.round(atRet.rrspCombined).toLocaleString();
+  document.getElementById('tfsaRetirement').textContent = Math.round(atRet.tfsaCombined).toLocaleString();
+  document.getElementById('fundsLastAge').textContent = 'Age ' + fundsLastAge;
+  document.getElementById('yourGovt').textContent = Math.round(baseCppYouAmount + baseOasAmount).toLocaleString();
+  document.getElementById('spouseGovt').textContent = Math.round(baseSpouseCppAmount + baseSpouseOasAmount).toLocaleString();
+  if(hasPension){ document.getElementById('pensionCard').style.display='block'; document.getElementById('pensionDisplay').textContent = Math.round(pensionAmount).toLocaleString(); } else document.getElementById('pensionCard').style.display='none';
+
+  window.retirementTimelineData = timelineData;
+  window.retirementAge = retirementAge;
+  document.getElementById('results').style.display = 'block';
+  showToast('Calculation complete','✅');
+
+  if (document.getElementById('timelineSection').style.display === 'block') showTimeline();
+}
+
+/* show timeline */
+function showTimeline(){
+  if(!window.retirementTimelineData){ alert('Please calculate first.'); return; }
+  const data = window.retirementTimelineData; const tbody = document.getElementById('timelineTableBody'); tbody.innerHTML='';
+  for(let i=0;i<data.length;i++){
+    const d=data[i]; const row=tbody.insertRow();
+    if(d.age === window.retirementAge) row.classList.add('retirement-row');
+    row.insertCell(0).textContent = d.age;
+    row.insertCell(1).textContent = d.year;
+    const c1=row.insertCell(2); c1.style.textAlign='right'; c1.textContent = Math.round(d.rrspCombined).toLocaleString();
+    const c2=row.insertCell(3); c2.style.textAlign='right'; c2.textContent = Math.round(d.tfsaCombined).toLocaleString();
+    const c3=row.insertCell(4); c3.style.textAlign='right'; c3.textContent = Math.round(d.yourCPP).toLocaleString();
+    const c4=row.insertCell(5); c4.style.textAlign='right'; c4.textContent = Math.round(d.yourOAS).toLocaleString();
+    const c5=row.insertCell(6); c5.style.textAlign='right'; c5.textContent = Math.round(d.spCPP).toLocaleString();
+    const c6=row.insertCell(7); c6.style.textAlign='right'; c6.textContent = Math.round(d.spOAS).toLocaleString();
+    const c7=row.insertCell(8); c7.style.textAlign='right'; c7.textContent = Math.round(d.pension || 0).toLocaleString();
+    const c8=row.insertCell(9); c8.style.textAlign='right'; c8.textContent = Math.round(d.total).toLocaleString();
+  }
+  document.getElementById('timelineSection').style.display='block';
+  document.getElementById('timelineSection').scrollIntoView({behavior:'smooth'});
+}
+
+/* init */
+window.addEventListener('load', ()=>{
+  if(localStorage.getItem('retirement.dark')==='1') document.documentElement.classList.add('dark');
+  document.getElementById('yearNow').textContent = new Date().getFullYear();
+  
+  try {
+    const raw = localStorage.getItem('retirementPlan.local');
+    if(raw) {
+      populateAllFromData(JSON.parse(raw));
+      showToast('Loaded saved data','📥');
+    }
+  } catch(e){}
+});
+
+</script>
+</body>
+</html>
