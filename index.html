@@ -71,6 +71,15 @@
   </style>
 </head>
 <body>
+  <!-- Dark Mode Toggle -->
+<button id="darkModeToggle" style="position:fixed; top:20px; right:20px; z-index:1000; padding:10px 15px; border:none; border-radius:8px; background:#667eea; color:white; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.2);">
+  🌙
+</button>
+
+<!-- Back to Top Button -->
+<button id="backToTop" style="position:fixed; bottom:30px; right:20px; z-index:1000; padding:10px 15px; border:none; border-radius:8px; background:#667eea; color:white; cursor:pointer; display:none; box-shadow:0 4px 10px rgba(0,0,0,0.2);">
+  ⬆ Top
+</button>
   <div class="container">
     <h1>Ryan's Financial Calculators</h1>
     <p class="subtitle">Free tools to help you plan your financial future</p>
@@ -120,5 +129,34 @@
   <script>
     // In the future, you can add JS interactivity here
   </script>
+  const darkModeToggle = document.getElementById("darkModeToggle");
+const backToTop = document.getElementById("backToTop");
+const body = document.body;
+
+// --- Dark Mode ---
+if (localStorage.getItem("darkMode") === "true") {
+  body.classList.add("dark-mode");
+  darkModeToggle.textContent = "☀️";
+}
+
+darkModeToggle.addEventListener("click", () => {
+  body.classList.toggle("dark-mode");
+  const isDark = body.classList.contains("dark-mode");
+  darkModeToggle.textContent = isDark ? "☀️" : "🌙";
+  localStorage.setItem("darkMode", isDark);
+});
+
+// --- Back to Top ---
+window.addEventListener("scroll", () => {
+  if (window.scrollY > 300) {
+    backToTop.style.display = "block";
+  } else {
+    backToTop.style.display = "none";
+  }
+});
+
+backToTop.addEventListener("click", () => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
 </body>
 </html>
