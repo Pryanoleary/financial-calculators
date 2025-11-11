@@ -211,6 +211,17 @@ body.dark-mode .tool-card {
   color: #eaeaea;
 }
 
+body.dark-mode h1,
+body.dark-mode .tools-section h2 {
+  color: #eaeaea;
+}
+
+body.dark-mode .about-section p,
+body.dark-mode .tools-section p,
+body.dark-mode .tool-card p {
+  color: #ccc;
+}
+
 body.dark-mode .calc-button {
   background: linear-gradient(135deg, #4444aa 0%, #663399 100%);
   color: #fff;
@@ -245,6 +256,11 @@ body.dark-mode .calc-button {
     </div>
 
     <div class="calculators">
+      <a href="budget-calculator.html" class="calc-button">
+        💵 Monthly Budget Calculator
+        <div class="calc-description">Discover how much you have left after covering your essentials</div>
+      </a>
+
       <a href="Retirement%20Calculator.html" class="calc-button">
         📊 Retirement Calculator
         <div class="calc-description">Plan your retirement savings and see your future nest egg</div>
@@ -263,13 +279,13 @@ body.dark-mode .calc-button {
 
       <div class="tools-grid">
         <div class="tool-card">
-          <h3>📝 Budget Planner</h3>
-          <p>Set up a monthly or biweekly budget and see where your money goes. (Coming soon!)</p>
+          <h3>🏦 Emergency Fund Goal</h3>
+          <p>Calculate how much you need to cover 3–6 months of expenses. (Coming soon!)</p>
         </div>
 
         <div class="tool-card">
-          <h3>🏦 Emergency Fund Goal</h3>
-          <p>Calculate how much you need to cover 3–6 months of expenses. (Coming soon!)</p>
+          <h3>🎯 Financial Goal Tracker</h3>
+          <p>Track your progress toward savings goals and milestones. (Coming soon!)</p>
         </div>
       </div>
     </section>
@@ -288,6 +304,11 @@ body.dark-mode .calc-button {
     const backToTop = document.getElementById("backToTop");
     const body = document.body;
 
+    // Load dark mode preference
+    if (localStorage.getItem("darkMode") === "true") {
+      body.classList.add("dark-mode");
+      darkModeToggle.textContent = "☀️";
+    }
 
     darkModeToggle.addEventListener("click", () => {
       body.classList.toggle("dark-mode");
