@@ -1,424 +1,540 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Debt Snowball Calculator (CAD)</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Debt Snowball Calculator</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
-    body {
-      font-family: "Segoe UI", Roboto, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #121212;
-      color: #f5f5f5;
-      transition: background-color 0.4s, color 0.4s;
+    /* =========================
+       Visual theme & layout
+       Dark mode default, teal accents
+       ========================= */
+    :root{
+      --bg:#0b1116;
+      --card:#0f1720;
+      --muted:#9fb0bb;
+      --teal:#22c1a3;
+      --accent:#3dd6b0;
+      --danger:#ff6b6b;
+      --glass: rgba(255,255,255,0.03);
+    }
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;color:#e7f1f2;background:linear-gradient(180deg,#071018 0%,var(--bg) 100%)}
+    .container{max-width:1100px;margin:22px auto;padding:18px;display:grid;grid-template-columns:1fr;gap:18px}
+    header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    header h1{margin:0;font-size:1.4rem;letter-spacing:0.2px}
+    header .controls{display:flex;gap:8px;align-items:center}
+
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:14px;box-shadow:0 8px 26px rgba(2,8,18,0.6);border:1px solid rgba(255,255,255,0.03)}
+    .row{display:flex;gap:12px;align-items:center}
+    .muted{color:var(--muted);font-size:0.9rem}
+
+    /* INPUT SECTION */
+    .input-wrap{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+    .left{flex:1;min-width:420px}
+    table{width:100%;border-collapse:collapse;font-size:0.95rem}
+    thead th{background:transparent;text-align:left;padding:10px 8px;color:var(--muted);font-weight:600}
+    tbody td{padding:8px 8px;border-top:1px solid var(--glass)}
+    input[type="text"], input[type="number"], select{
+      width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;box-sizing:border-box
+    }
+    .small{font-size:0.85rem;color:var(--muted)}
+
+    .btn{background:var(--teal);color:#04261f;padding:8px 12px;border-radius:8px;border:0;font-weight:700;cursor:pointer}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
+    .btn.warn{background:var(--danger);color:white}
+
+    .controls-row{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}
+    .controls-row label{font-size:0.9rem;color:var(--muted);margin-right:6px}
+    .small-input{width:140px}
+
+    /* OUTPUT SECTION */
+    .output-grid{display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:start}
+    .chart-box{padding:10px}
+    canvas{width:100%!important;height:320px!important;background:transparent;border-radius:10px}
+
+    .summary{display:flex;flex-direction:column;gap:8px}
+    .metric{display:flex;justify-content:space-between;padding:10px;border-radius:8px;background:linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005))}
+    .metric strong{font-weight:700}
+    .timeline{margin-top:8px;padding:8px;border-radius:8px;background:linear-gradient(90deg, rgba(255,255,255,0.008), rgba(255,255,255,0.004));max-height:300px;overflow:auto}
+
+    footer{margin-top:8px;text-align:center;color:var(--muted);font-size:0.85rem}
+
+    /* Responsive */
+    @media (max-width:980px){
+      .output-grid{grid-template-columns:1fr}
+      .left{min-width:0}
     }
 
-    header {
-      background: #1e1e1e;
-      color: #fff;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem 2rem;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-    }
-
-    h1 {
-      margin: 0;
-      font-size: 1.5rem;
-    }
-
-    .mode-toggle button {
-      background-color: #333;
-      border: 1px solid #666;
-      color: #f5f5f5;
-      border-radius: 6px;
-      padding: 0.5rem 1rem;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    .mode-toggle button:hover {
-      background-color: #444;
-    }
-
-    .controls {
-      margin: 2rem;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-    }
-
-    th, td {
-      padding: 0.75rem;
-      text-align: center;
-    }
-
-    th {
-      background-color: #1e1e1e;
-      border-bottom: 2px solid #333;
-    }
-
-    td {
-      background-color: #181818;
-      border-bottom: 1px solid #333;
-    }
-
-    input, select, button {
-      border-radius: 4px;
-      padding: 0.4rem;
-      border: 1px solid #666;
-      background-color: #222;
-      color: #f5f5f5;
-    }
-
-    input[type="number"], input[type="text"] {
-      width: 100%;
-      max-width: 150px;
-    }
-
-    .remove-btn {
-      background-color: #8b0000;
-      color: white;
-      border: none;
-      padding: 0.4rem 0.7rem;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-
-    .remove-btn:hover {
-      background-color: #b30000;
-    }
-
-    #addDebt {
-      margin-top: 0.8rem;
-      background-color: #004aad;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    #addDebt:hover {
-      background-color: #0066cc;
-    }
-
-    .payment-options {
-      margin-top: 1rem;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      align-items: center;
-    }
-
-    #calculateBtn {
-      background-color: #28a745;
-      color: white;
-      border: none;
-      padding: 0.6rem 1.2rem;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    #calculateBtn:hover {
-      background-color: #2fc75f;
-    }
-
-    .results, .chart-section {
-      margin: 2rem;
-      padding: 1rem;
-      background-color: #181818;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.4);
-    }
-
-    .chart-controls {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    body.light-mode {
-      background-color: #f5f5f5;
-      color: #222;
-    }
-
-    body.light-mode header {
-      background: #e0e0e0;
-      color: #222;
-    }
-
-    body.light-mode table th {
-      background-color: #ddd;
-      color: #222;
-    }
-
-    body.light-mode td {
-      background-color: #fff;
-      color: #222;
-    }
-
-    body.light-mode input, 
-    body.light-mode select, 
-    body.light-mode button {
-      background-color: #fff;
-      color: #000;
-      border: 1px solid #bbb;
-    }
-
-    body.light-mode .results, 
-    body.light-mode .chart-section {
-      background-color: #fafafa;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    footer {
-      text-align: center;
-      padding: 1rem;
-      color: #888;
-    }
+    /* LIGHT MODE */
+    body.light{ --bg:#f4f6f8; --card:#ffffff; --muted:#5a6b73; --teal:#0ea37a; color:#0b1b20; background:linear-gradient(180deg,#f7fbfb 0%, #f4f6f8 100%); }
+    body.light input{background:#fff;color:inherit}
+    body.light table thead th{color:var(--muted)}
+    body.light .card{box-shadow:0 6px 18px rgba(2,6,23,0.06);border:1px solid rgba(2,6,23,0.03)}
   </style>
 </head>
-<body class="dark-mode">
+<body class="dark">
+  <div class="container">
+    <header>
+      <div>
+        <h1>Debt Snowball Calculator</h1>
+        <div class="small muted">All values in <strong>CAD</strong> — amounts shown with no cents. Interest rounded up each period.</div>
+      </div>
 
-  <header>
-    <h1>Debt Snowball Calculator</h1>
-    <div class="mode-toggle">
-      <button id="themeToggle">🌙 Dark Mode</button>
-    </div>
-  </header>
+      <div class="controls">
+        <button id="themeToggle" class="btn ghost">Light Mode</button>
+        <button id="exportCsv" class="btn ghost" title="Export schedule as CSV">Export CSV</button>
+      </div>
+    </header>
 
-  <section class="controls">
-    <h2>Enter Your Debts</h2>
-    <table id="debtTable">
-      <thead>
-        <tr>
-          <th>Debt Name</th>
-          <th>Total Amount ($CAD)</th>
-          <th>Minimum Payment ($CAD)</th>
-          <th>Interest (%)</th>
-          <th>Remove</th>
-        </tr>
-      </thead>
-      <tbody id="debtBody">
-        <tr>
-          <td><input type="text" placeholder="e.g., Credit Card" /></td>
-          <td><input type="number" min="0" step="1" /></td>
-          <td><input type="number" min="0" step="1" /></td>
-          <td><input type="number" min="0" step="0.01" /></td>
-          <td><button class="remove-btn">X</button></td>
-        </tr>
-      </tbody>
-    </table>
+    <!-- INPUT CARD -->
+    <section class="card input-wrap">
+      <div class="left">
+        <h3 style="margin:0 0 8px 0">Debts (enter lowest balance first for snowball)</h3>
+        <table id="debtTable" aria-label="Debts table">
+          <thead>
+            <tr>
+              <th style="width:36%;">Debt Name</th>
+              <th style="width:22%;">Total Amount ($CAD)</th>
+              <th style="width:22%;">Minimum Payment ($CAD)</th>
+              <th style="width:16%;">Interest (%)</th>
+              <th style="width:4%;"></th>
+            </tr>
+          </thead>
+          <tbody id="debtBody">
+            <tr>
+              <td><input type="text" value="Line of Credit"></td>
+              <td><input type="number" min="0" step="1" value="900"></td>
+              <td><input type="number" min="0" step="1" value="25"></td>
+              <td><input type="number" min="0" step="0.01" value="8.5"></td>
+              <td><button class="btn warn removeRow">X</button></td>
+            </tr>
+            <tr>
+              <td><input type="text" value="Visa"></td>
+              <td><input type="number" min="0" step="1" value="1200"></td>
+              <td><input type="number" min="0" step="1" value="35"></td>
+              <td><input type="number" min="0" step="0.01" value="19.99"></td>
+              <td><button class="btn warn removeRow">X</button></td>
+            </tr>
+            <tr>
+              <td><input type="text" value="Mastercard"></td>
+              <td><input type="number" min="0" step="1" value="4200"></td>
+              <td><input type="number" min="0" step="1" value="100"></td>
+              <td><input type="number" min="0" step="0.01" value="18.49"></td>
+              <td><button class="btn warn removeRow">X</button></td>
+            </tr>
+          </tbody>
+        </table>
 
-    <button id="addDebt">+ Add Another Debt</button>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;">
+          <button id="addDebt" class="btn">+ Add debt</button>
+          <button id="clearAll" class="btn ghost">Clear all</button>
+        </div>
+      </div>
 
-    <div class="payment-options">
-      <label for="paymentFreq">Payment Frequency:</label>
-      <select id="paymentFreq">
-        <option value="monthly">Monthly</option>
-        <option value="biweekly">Biweekly</option>
-      </select>
+      <div style="min-width:260px;max-width:340px">
+        <h3 style="margin-top:0">Payment Options</h3>
 
-      <label for="extraPayment">Extra Payment ($CAD):</label>
-      <input type="number" id="extraPayment" min="0" step="1" value="0" />
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="row">
+            <label class="small" for="paymentFrequency">Frequency</label>
+            <select id="paymentFrequency" style="width:160px">
+              <option value="monthly">Monthly</option>
+              <option value="biweekly">Biweekly</option>
+            </select>
+          </div>
 
-      <button id="calculateBtn">Calculate</button>
-    </div>
-  </section>
+          <div class="row">
+            <label class="small" for="extraPayment">Extra Payment ($CAD)</label>
+            <input id="extraPayment" type="number" min="0" step="1" value="50" class="small-input">
+          </div>
 
-  <section class="results">
-    <h2>Results Summary</h2>
-    <div id="summary">
-      <p><strong>Total Debt:</strong> <span id="totalDebt">$0</span></p>
-      <p><strong>Total Interest Paid:</strong> <span id="totalInterest">$0</span></p>
-      <p><strong>Total Amount Paid:</strong> <span id="totalPaid">$0</span></p>
-      <p><strong>Months (or Periods) to Pay Off:</strong> <span id="totalMonths">0</span></p>
-    </div>
-  </section>
+          <div style="display:flex;gap:8px">
+            <button id="calculateBtn" class="btn">Calculate</button>
+            <button id="toggleChartBtn" class="btn ghost">Switch Chart</button>
+          </div>
 
-  <section class="chart-section">
-    <h2>Debt Payoff Chart</h2>
-    <div class="chart-controls">
-      <label for="chartType">Chart Type:</label>
-      <select id="chartType">
-        <option value="bar">Stacked Bar Chart</option>
-        <option value="line">Line Chart</option>
-      </select>
-    </div>
-    <canvas id="debtChart"></canvas>
-  </section>
+          <div class="small muted" style="margin-top:6px">
+            Tip: Enter debts lowest to highest for snowball ordering, or leave unsorted and the calculator will sort by balance.
+          </div>
+        </div>
+      </div>
+    </section>
 
-  <footer>
-    <p>© 2025 Ryan O'Leary | Created to help Canadians with Debt – All values in $CAD</p>
-  </footer>
+    <!-- OUTPUT -->
+    <section class="output-grid">
+      <div class="card chart-box">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <h3 style="margin:0">Debt Payoff Chart</h3>
+          <div style="display:flex;align-items:center;gap:8px">
+            <label class="small muted">Chart:</label>
+            <select id="chartMode" style="padding:6px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:inherit">
+              <option value="bar">Stacked Bar</option>
+              <option value="line">Line (total)</option>
+            </select>
+          </div>
+        </div>
+        <canvas id="payoffChart"></canvas>
+      </div>
+
+      <aside class="card summary">
+        <h3 style="margin:0 0 6px 0">Results Summary</h3>
+
+        <div class="metric"><strong>Total debt (start)</strong><span id="origBalance">$0</span></div>
+        <div class="metric"><strong>Total interest paid</strong><span id="totalInterest">$0</span></div>
+        <div class="metric"><strong>Total amount paid</strong><span id="totalPaid">$0</span></div>
+        <div class="metric"><strong>Periods to debt-free</strong><span id="periodsToPay">0</span></div>
+        <div class="metric"><strong>Estimated debt-free date</strong><span id="debtFreeDate">N/A</span></div>
+
+        <h4 style="margin:10px 0 6px 0">Payoff Timeline</h4>
+        <div class="timeline" id="payoffTimeline" aria-live="polite">
+          <!-- list inserted here -->
+        </div>
+      </aside>
+    </section>
+
+    <footer class="muted"> © 2025 Ryan's Financial Calculators All values in CAD (rounded to nearest dollar)</footer>
+  </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const addDebtBtn = document.getElementById("addDebt");
-      const debtBody = document.getElementById("debtBody");
-      const calculateBtn = document.getElementById("calculateBtn");
-      const totalDebtEl = document.getElementById("totalDebt");
-      const totalInterestEl = document.getElementById("totalInterest");
-      const totalPaidEl = document.getElementById("totalPaid");
-      const totalMonthsEl = document.getElementById("totalMonths");
-      const paymentFreqEl = document.getElementById("paymentFreq");
-      const extraPaymentEl = document.getElementById("extraPayment");
-      const themeToggle = document.getElementById("themeToggle");
-      const chartTypeEl = document.getElementById("chartType");
+    // =========================
+    // Debt Snowball - Single-file app
+    // =========================
 
-      let debtChart = null;
+    // Helpers
+    function toCAD(n){ return '$' + Math.round(n).toLocaleString('en-CA'); }
+    function clampInt(v){ return Math.round(Math.max(0, Number(v) || 0)); }
 
-      themeToggle.addEventListener("click", () => {
-        document.body.classList.toggle("light-mode");
-        if (document.body.classList.contains("light-mode")) {
-          themeToggle.textContent = "☀️ Light Mode";
-        } else {
-          themeToggle.textContent = "🌙 Dark Mode";
-        }
+    // DOM elements
+    const debtBody = document.getElementById('debtBody');
+    const addDebtBtn = document.getElementById('addDebt');
+    const clearAllBtn = document.getElementById('clearAll');
+    const calculateBtn = document.getElementById('calculateBtn');
+    const paymentFrequency = document.getElementById('paymentFrequency');
+    const extraPaymentInput = document.getElementById('extraPayment');
+    const totalInterestEl = document.getElementById('totalInterest');
+    const totalPaidEl = document.getElementById('totalPaid');
+    const origBalanceEl = document.getElementById('origBalance');
+    const periodsToPayEl = document.getElementById('periodsToPay');
+    const debtFreeDateEl = document.getElementById('debtFreeDate');
+    const payoffTimelineEl = document.getElementById('payoffTimeline');
+    const chartModeEl = document.getElementById('chartMode');
+    const toggleChartBtn = document.getElementById('toggleChartBtn');
+    const themeToggle = document.getElementById('themeToggle');
+    const exportCsvBtn = document.getElementById('exportCsv');
+
+    let payoffChart = null;
+
+    // Add / remove rows
+    addDebtBtn.addEventListener('click', () => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="text" placeholder="e.g. Credit Card"></td>
+        <td><input type="number" min="0" step="1" value="0"></td>
+        <td><input type="number" min="0" step="1" value="0"></td>
+        <td><input type="number" min="0" step="0.01" value="0"></td>
+        <td><button class="btn warn removeRow">X</button></td>
+      `;
+      debtBody.appendChild(tr);
+    });
+
+    debtBody.addEventListener('click', (e) => {
+      if(e.target.matches('.removeRow')){
+        const row = e.target.closest('tr');
+        if(row) row.remove();
+      }
+    });
+
+    clearAllBtn.addEventListener('click', () => {
+      // remove all rows then add a blank one
+      debtBody.innerHTML = '';
+      addDebtBtn.click();
+      addDebtBtn.click();
+      addDebtBtn.click();
+    });
+
+    // Theme toggle
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('light');
+      themeToggle.innerText = document.body.classList.contains('light') ? 'Dark Mode' : 'Light Mode';
+    });
+
+    // Toggle chart button convenience
+    toggleChartBtn.addEventListener('click', () => {
+      chartModeEl.value = (chartModeEl.value === 'bar') ? 'line' : 'bar';
+      renderChart(latestSimulation);
+    });
+
+    // Export CSV
+    exportCsvBtn.addEventListener('click', () => {
+      if(!latestSimulation){ alert('Run a calculation first.'); return; }
+      const csvRows = ['Period,Debt,Payment,Interest,Principal,Remaining'];
+      latestSimulation.schedule.forEach(row=>{
+        csvRows.push([row.period,row.name,row.payment,row.interest,row.principal,row.remaining].join(','));
       });
+      const blob = new Blob([csvRows.join('\\n')], {type:'text/csv'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'debt_snowball_schedule.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
 
-      addDebtBtn.addEventListener("click", () => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td><input type="text" placeholder="e.g., Loan #${debtBody.children.length + 1}" /></td>
-          <td><input type="number" min="0" step="1" /></td>
-          <td><input type="number" min="0" step="1" /></td>
-          <td><input type="number" min="0" step="0.01" /></td>
-          <td><button class="remove-btn">X</button></td>
-        `;
-        debtBody.appendChild(row);
-      });
+    // latestSimulation holds last run for re-render/export
+    let latestSimulation = null;
 
-      debtBody.addEventListener("click", (e) => {
-        if (e.target.classList.contains("remove-btn")) {
-          e.target.closest("tr").remove();
-        }
-      });
+    // Main calculate function
+    calculateBtn.addEventListener('click', () => {
+      // Build debts array from table
+      const rows = Array.from(debtBody.querySelectorAll('tr'));
+      let debts = rows.map((r, idx) => {
+        const name = (r.children[0].querySelector('input').value || `Debt ${idx+1}`).trim();
+        const balance = clampInt(r.children[1].querySelector('input').value);
+        const minPayment = clampInt(r.children[2].querySelector('input').value);
+        const interestPercent = parseFloat(r.children[3].querySelector('input').value) || 0;
+        return { name, balance, minPayment, interestPercent };
+      }).filter(d => d.balance > 0);
 
-      calculateBtn.addEventListener("click", () => {
-        const debts = [];
-        [...debtBody.children].forEach((row) => {
-          const name = row.children[0].querySelector("input").value || `Debt ${debts.length + 1}`;
-          const balance = parseInt(row.children[1].querySelector("input").value) || 0;
-          const minPayment = parseInt(row.children[2].querySelector("input").value) || 0;
-          const interestRate = parseFloat(row.children[3].querySelector("input").value) || 0;
-          if (balance > 0) debts.push({ name, balance, minPayment, interestRate });
+      if(debts.length === 0){
+        alert('Add at least one debt with a positive balance.');
+        return;
+      }
+
+      // Snowball sorts lowest balance first (user can pre-order; we still sort to be safe)
+      debts.sort((a,b) => a.balance - b.balance);
+
+      const freq = paymentFrequency.value; // 'monthly' or 'biweekly'
+      const periodsPerYear = (freq === 'biweekly') ? 26 : 12;
+      // months per period used to advance date for timeline (biweekly is ~0.4615 months)
+      const monthsPerPeriod = 12 / periodsPerYear;
+
+      let totalOrig = debts.reduce((s,d) => s + d.balance, 0);
+      let totalInterest = 0;
+      let totalPaid = 0;
+
+      // We'll simulate period-by-period. Track schedule rows for CSV and chart data.
+      const schedule = []; // {period, name, payment, interest, principal, remaining}
+      const balancesOverTime = []; // array of arrays [balanceDebt0,balanceDebt1,...] each period
+      const startBalances = debts.map(d => d.balance);
+
+      // Clone debts to mutate
+      const working = debts.map(d => ({
+        name: d.name,
+        balance: d.balance,
+        minPayment: d.minPayment,
+        interestPercent: d.interestPercent
+      }));
+
+      // Current extra goes to the smallest active debt; when a debt is paid, its minPayment + currentExtra is rolled
+      let userExtra = clampInt(extraPaymentInput.value);
+
+      // We'll simulate until all balances zero or a safety cap (1000 periods)
+      let period = 0;
+      let payoffDates = []; // store {name, periodIndex}
+      const maxPeriods = 2000; // safety cap
+      while(working.some(d => d.balance > 0) && period < maxPeriods){
+        period++;
+        // Snapshot balances at start of period for chart before interest? We'll record after interest+payment to show progress.
+        // Apply interest to each active debt (rounded UP to nearest dollar)
+        const periodInterests = working.map(d => {
+          if(d.balance <= 0) return 0;
+          // interest per period = balance * (annual rate / periodsPerYear)
+          const interest = Math.ceil(d.balance * (d.interestPercent / 100) / periodsPerYear);
+          d.balance += interest;
+          return interest;
         });
 
-        if (debts.length === 0) {
-          alert("Please enter at least one debt.");
-          return;
-        }
+        // Find first active (smallest) debt index (snowball)
+        const activeIndices = working.map((d,i)=> d.balance>0 ? i : -1).filter(i=>i>=0);
+        const smallestIndex = activeIndices.length > 0 ? activeIndices[0] : -1;
 
-        const extraPayment = parseInt(extraPaymentEl.value) || 0;
-        const biweekly = paymentFreqEl.value === "biweekly";
-        const periodInterestDivisor = biweekly ? 26 : 12;
+        // Apply minimum payments to all active debts; extra applied to smallest active debt
+        for(let i=0;i<working.length;i++){
+          const d = working[i];
+          if(d.balance <= 0) continue;
+          let payment = Math.min(d.minPayment, d.balance); // pay at least min payment up to balance
+          // if this is the smallest active, add the extra
+          if(i === smallestIndex && userExtra > 0){
+            const extraApplied = Math.min(userExtra, d.balance - payment);
+            payment += extraApplied;
+            // extra is one-time until debt paid. We treat userExtra as amount available each period that goes to smallest active.
+            // (When debt paid, minPayment of that debt will be added to next debt and extra remains same.)
+          }
+          // Ensure rounding integer dollars
+          payment = Math.round(payment);
+          const preBalance = d.balance;
+          d.balance = Math.max(0, Math.round(d.balance - payment));
+          const interestThis = periodInterests[i] || 0;
+          const principal = payment - interestThis;
+          totalPaid += payment;
+          totalInterest += interestThis;
 
-        debts.sort((a, b) => a.balance - b.balance);
+          // record schedule entry
+          schedule.push({
+            period,
+            name: d.name,
+            payment,
+            interest: interestThis,
+            principal: principal >= 0 ? principal : 0,
+            remaining: d.balance
+          });
 
-        let totalInterest = 0;
-        let totalPaid = 0;
-        let totalDebt = debts.reduce((sum, d) => sum + d.balance, 0);
-        let months = 0;
-
-        const chartData = [];
-        const labels = [];
-
-        const balances = debts.map((d) => d.balance);
-        const minPays = debts.map((d) => d.minPayment);
-        let currentExtra = extraPayment;
-
-        while (balances.some((b) => b > 0) && months < 600) {
-          months++;
-
-          if (months <= 100) labels.push("P" + months);
-
-          for (let i = 0; i < balances.length; i++) {
-            if (balances[i] <= 0) continue;
-
-            const interest = Math.ceil(balances[i] * (debts[i].interestRate / 100 / periodInterestDivisor));
-            totalInterest += interest;
-            balances[i] += interest;
-
-            let payment = minPays[i];
-            if (i === balances.findIndex((b) => b > 0)) {
-              payment += currentExtra;
-            }
-
-            if (payment > balances[i]) payment = balances[i];
-            balances[i] -= payment;
-            totalPaid += payment;
-
-            if (balances[i] <= 0) {
-              currentExtra += minPays[i];
-              balances[i] = 0;
+          // If paid off this iteration, roll the paid debt's minPayment into next active debt
+          if(preBalance > 0 && d.balance === 0){
+            payoffDates.push({ name: d.name, period });
+            // Find next active debt to receive the rolled payment
+            const nextIndex = working.findIndex(w=> w.balance > 0);
+            if(nextIndex >= 0){
+              working[nextIndex].minPayment += d.minPayment;
+              // Also roll extra: per your specification, when the debt is paid off, the extra payment + that debt's minPayment goes toward the next debt.
+              // That implies userExtra should be effectively added to next debt's payments after payoff; implement by adding to next debt's minPayment once first paid.
+              // To mirror your desired behavior: when a debt is fully paid, add (d.minPayment + userExtra) to next debt's minPayment.
+              working[nextIndex].minPayment += userExtra;
+              // And now set this debt's minPayment to 0 to avoid double counting (already paid).
+              d.minPayment = 0;
             }
           }
+        } // end per-debt payments
 
-          if (months <= 100) {
-            chartData.push([...balances]);
-          }
+        // After payments, collect balances for chart
+        balancesOverTime.push(working.map(w => Math.round(w.balance)));
+
+        // Safety: avoid infinite loop if payments are zero / can't progress
+        const totalRemaining = working.reduce((s,w)=> s + w.balance, 0);
+        if(totalRemaining === 0) break;
+
+        // detect lack of progress: if no one made a principal reduction in the entire period, break to avoid infinite loop
+        const lastPeriod = balancesOverTime[balancesOverTime.length - 1];
+        const prevPeriod = balancesOverTime.length > 1 ? balancesOverTime[balancesOverTime.length - 2] : startBalances;
+        const reduced = lastPeriod.some((val, idx) => val < prevPeriod[idx]);
+        if(!reduced){
+          // no meaningful reduction — likely payments are 0. break.
+          console.warn('No balance reduction detected — stopping simulation.');
+          break;
         }
+        // continue next period
+      } // end simulation
 
-        totalDebtEl.textContent = `$${Math.round(totalDebt).toLocaleString()}`;
-        totalInterestEl.textContent = `$${Math.round(totalInterest).toLocaleString()}`;
-        totalPaidEl.textContent = `$${Math.round(totalPaid).toLocaleString()}`;
-        totalMonthsEl.textContent = `${months}`;
-
-        const ctx = document.getElementById("debtChart").getContext("2d");
-        if (debtChart) debtChart.destroy();
-
-        const datasets =
-          chartTypeEl.value === "bar"
-            ? debts.map((d, i) => ({
-                label: d.name,
-                data: chartData.map((row) => row[i]),
-                backgroundColor: `hsl(${i * 60}, 70%, 50%)`,
-                stack: "combined",
-              }))
-            : [
-                {
-                  label: "Total Remaining Debt",
-                  data: chartData.map((row) => row.reduce((a, b) => a + b, 0)),
-                  borderColor: "#4caf50",
-                  borderWidth: 2,
-                  fill: false,
-                  tension: 0.1,
-                },
-              ];
-
-        const config =
-          chartTypeEl.value === "bar"
-            ? {
-                type: "bar",
-                data: { labels, datasets },
-                options: {
-                  responsive: true,
-                  scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } },
-                  plugins: { legend: { labels: { color: "#ccc" } } },
-                },
-              }
-            : {
-                type: "line",
-                data: { labels, datasets },
-                options: {
-                  responsive: true,
-                  scales: { y: { beginAtZero: true } },
-                  plugins: { legend: { labels: { color: "#ccc" } } },
-                },
-              };
-
-        debtChart = new Chart(ctx, config);
+      // Build payoff timeline with calendar dates:
+      const startDate = new Date();
+      const timeline = payoffDates.map(pd => {
+        // compute months to add: convert period to months using months per period
+        const monthsToAdd = Math.round((pd.period) * (12 / (paymentFrequency.value === 'biweekly' ? 26 : 12)));
+        const d = new Date(startDate);
+        d.setMonth(d.getMonth() + monthsToAdd);
+        return { name: pd.name, date: d.toLocaleString('en-CA', { month: 'long', year: 'numeric' }) };
       });
+
+      // totals & display
+      const totalOrigRounded = Math.round(totalOrig);
+      origBalanceEl.innerText = toCAD(totalOrigRounded);
+      totalInterestEl.innerText = toCAD(totalInterest);
+      totalPaidEl.innerText = toCAD(totalPaid);
+      periodsToPayEl.innerText = balancesOverTime.length.toLocaleString();
+      debtFreeDateEl.innerText = (timeline.length > 0) ? timeline[timeline.length - 1].date : 'N/A';
+
+      // Render payoff timeline list
+      if(timeline.length === 0){
+        payoffTimelineEl.innerHTML = '<div class="small muted">No debts are scheduled to be paid (check payments and extra amounts).</div>';
+      } else {
+        payoffTimelineEl.innerHTML = timeline.map(t => `<div style="display:flex;justify-content:space-between;padding:6px 4px;border-bottom:1px solid rgba(255,255,255,0.02)"><div>${t.name}</div><div style="font-weight:700">${t.date}</div></div>`).join('');
+      }
+
+      // Keep simulation for chart & export
+      latestSimulation = { debts: debts.map(d=>({...d})), startBalances, schedule, balancesOverTime, timeline, totalInterest, totalPaid };
+
+      // Render chart
+      renderChart(latestSimulation);
+    }); // end calculateBtn click
+
+    // Chart rendering function
+    function renderChart(sim) {
+      const ctx = document.getElementById('payoffChart').getContext('2d');
+      if(!sim) {
+        // clear chart
+        if(payoffChart){ payoffChart.destroy(); payoffChart = null; }
+        return;
+      }
+
+      const mode = chartModeEl.value || 'bar'; // 'bar' or 'line'
+      const labels = sim.balancesOverTime.map((_, idx) => `P${idx+1}`);
+
+      if(payoffChart) payoffChart.destroy();
+
+      if(mode === 'bar'){
+        // Build datasets per debt (stacked)
+        const datasets = sim.debts.map((d, di) => {
+          const data = sim.balancesOverTime.map(row => row[di] || 0);
+          const hue = (di * 55) % 360;
+          return {
+            label: d.name,
+            data,
+            backgroundColor: `hsla(${hue},70%,55%,0.65)`,
+            borderColor: `hsla(${hue},70%,50%,1)`,
+            borderWidth: 1,
+            stack: 'stack1'
+          };
+        });
+
+        payoffChart = new Chart(ctx, {
+          type: 'bar',
+          data: { labels, datasets },
+          options: {
+            responsive:true,
+            interaction: { mode: 'index' },
+            plugins: { legend: { position: 'bottom' } },
+            scales: {
+              x: { stacked: true, title: { display:false } },
+              y: { stacked: true, beginAtZero:true, ticks: { callback: v => '$' + v.toLocaleString() } }
+            }
+          }
+        });
+      } else {
+        // line chart of total remaining debt per period
+        const totals = sim.balancesOverTime.map(row => row.reduce((s,v)=>s+v, 0));
+        payoffChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [{
+              label: 'Total Remaining Debt',
+              data: totals,
+              fill: true,
+              borderColor: 'rgba(34,193,178,0.95)',
+              backgroundColor: 'rgba(34,193,178,0.18)',
+              tension: 0.15,
+              pointRadius: 2
+            }]
+          },
+          options:{
+            responsive:true,
+            plugins: { legend: { position: 'bottom' } },
+            scales: { y: { beginAtZero:true, ticks: { callback: v => '$' + v.toLocaleString() } } }
+          }
+        });
+      }
+    }
+
+   
+
+    // Chart mode change triggers re-render
+    chartModeEl.addEventListener('change', ()=> { renderChart(latestSimulation); });
+
+    // Initial calculation on load
+    window.addEventListener('load', () => {
+      // Make sure at least one sample row exists
+      if(debtBody.children.length === 0) addDebtBtn.click();
+      calculateBtn.click();
     });
+
+    // Accessibility: keyboard enter on inputs will not submit page but recalc
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter' && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) {
+        e.preventDefault();
+        calculateBtn.click();
+      }
+    });
+
   </script>
 </body>
 </html>
