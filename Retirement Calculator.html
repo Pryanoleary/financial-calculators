@@ -7,7 +7,7 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 :root{
-  --primary:#667eea; --primary-dark:#5568d3; --secondary:#764ba2; --bg-primary:#f8fafc; --bg-secondary:#fff; --text-primary:#1e293b; --border:#e2e8f0; --success:#10b981; --danger:#ef4444; --info:#3b82f6;
+  --primary:#667eea; --primary-dark:#5568d3; --secondary:#764ba2; --bg-primary:#f8fafc; --bg-secondary:#fff; --text-primary:#1e293b; --border:#e2e8f0; --success:#10b981; --danger:#ef4444;
 }
 html.dark{
   --primary:#8b9eff; --primary-dark:#7a8eef; --secondary:#9d7ac2; --bg-primary:#0f172a; --bg-secondary:#1e293b; --text-primary:#f1f5f9; --border:#334155;
@@ -28,11 +28,10 @@ h1{color:white;margin:0;font-size:2rem}
 .settings-menu.show{display:block}
 .menu-item{padding:8px 10px;border-radius:8px;cursor:pointer;display:flex;gap:8px;align-items:center}
 
-/* help banner */
-.help-banner{background:var(--info);color:#fff;padding:12px 20px;border-radius:10px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .2s}
-.help-banner:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(59,130,246,0.3)}
-.help-banner-content{display:flex;align-items:center;gap:10px}
-.help-icon{font-size:24px}
+/* scroll to top button */
+.scroll-to-top{position:fixed;bottom:30px;right:30px;width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;border:none;font-size:24px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.15);opacity:0;visibility:hidden;transition:all 0.3s;z-index:1000;display:flex;align-items:center;justify-content:center}
+.scroll-to-top.show{opacity:1;visibility:visible}
+.scroll-to-top:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,0.2)}
 
 /* main */
 .main-content{background:var(--bg-secondary);border-radius:14px;padding:28px;box-shadow:0 20px 40px rgba(0,0,0,0.08)}
@@ -53,18 +52,10 @@ thead th{background:linear-gradient(135deg,var(--primary),var(--secondary));colo
 tbody td{padding:10px;border-bottom:1px solid var(--border);background:var(--bg-secondary)}
 .helper-text{font-size:13px;color:var(--text-primary);opacity:0.8}
 
-/* glossary */
-.glossary-item{margin-bottom:20px;padding:16px;background:var(--bg-primary);border-left:4px solid var(--primary);border-radius:8px}
-.glossary-item h3{margin:0 0 8px 0;color:var(--primary);font-size:16px}
-.glossary-item p{margin:0;line-height:1.6}
-.glossary-item ul{margin:8px 0 0 20px}
-.glossary-item li{margin:4px 0}
-.glossary-example{background:var(--bg-secondary);padding:10px;border-radius:6px;margin-top:8px;font-style:italic;border-left:3px solid var(--success)}
-
 /* tooltip (to the right, above content) */
 .tooltip{position:relative;display:inline-block;margin-left:6px;cursor:help}
 .tooltip-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--primary);color:#fff;font-size:11px}
-.tooltiptext{visibility:hidden;opacity:0;position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);min-width:240px;max-width:320px;background:#1e293b;color:#fff;padding:10px;border-radius:8px;z-index:9999;transition:opacity .12s;font-size:13px;line-height:1.5}
+.tooltiptext{visibility:hidden;opacity:0;position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);min-width:240px;background:#1e293b;color:#fff;padding:10px;border-radius:8px;z-index:9999;transition:opacity .12s}
 .tooltip:hover .tooltiptext{visibility:visible;opacity:1}
 
 /* timeline, cards */
@@ -78,12 +69,12 @@ tbody td{padding:10px;border-bottom:1px solid var(--border);background:var(--bg-
 .timeline-table td{text-align:right}
 
 /* toast & loading */
-.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--bg-secondary);padding:10px 14px;border-radius:8px;border:1px solid var(--border);display:flex;gap:8px;align-items:center;opacity:0;transition:all .25s;z-index:2000}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--bg-secondary);padding:10px 14px;border-radius:8px;border:1px solid var(--border);display:flex;gap:8px;align-items:center;opacity:0;transition:all .25s;z-index:1500}
 .toast.show{opacity:1}
 .loading-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1500;align-items:center;justify-content:center}
 .loading-overlay.show{display:flex}
 .loading-content{background:var(--bg-secondary);padding:24px;border-radius:12px;border:1px solid var(--border);text-align:center}
-@media(max-width:768px){ .form-row{flex-direction:column} .controls{top:10px;right:10px} }
+@media(max-width:768px){ .form-row{flex-direction:column} .controls{top:10px;right:10px} .scroll-to-top{bottom:20px;right:20px;width:45px;height:45px;font-size:20px} }
 </style>
 </head>
 <body>
@@ -95,6 +86,9 @@ tbody td{padding:10px;border-bottom:1px solid var(--border);background:var(--bg-
 </div>
 
 <div class="toast" id="toast"><span id="toastIcon">✓</span><span id="toastMessage">Saved</span></div>
+
+<!-- Scroll to top button -->
+<button class="scroll-to-top" id="scrollToTopBtn">⬆</button>
 
 <div class="controls">
   <div style="position:relative">
@@ -119,160 +113,6 @@ tbody td{padding:10px;border-bottom:1px solid var(--border);background:var(--bg-
   </div>
 
   <div class="main-content">
-
-    <!-- Help Banner -->
-    <div class="help-banner" id="helpBanner">
-      <div class="help-banner-content">
-        <span class="help-icon">❓</span>
-        <div>
-          <strong>New to retirement planning?</strong>
-          <div style="font-size:13px;opacity:0.9">Click here to view the Help & Glossary</div>
-        </div>
-      </div>
-      <span style="font-size:20px" id="helpArrow">▼</span>
-    </div>
-
-    <!-- Help & Glossary Section -->
-    <div class="section" id="glossarySection" style="display:none">
-      <div class="section-header"><div><strong>📚 Help & Glossary</strong></div></div>
-      <div class="section-content" style="display:block">
-        
-        <div class="glossary-item">
-          <h3>🔄 Real vs Nominal Returns (Most Important!)</h3>
-          <p><strong>This is the most confusing part of retirement planning.</strong> Understanding this will help everything else make sense.</p>
-          
-          <p style="margin-top:12px"><strong>Real Return (Recommended)</strong> - Growth AFTER inflation:</p>
-          <ul>
-            <li>This is how much richer you're actually getting</li>
-            <li>If you earn 6% but inflation is 2%, your real return is 4%</li>
-            <li>In "Real Return" mode, you enter 4% and the calculator automatically adds inflation</li>
-            <li>When you change inflation from 2% to 5%, the calculator uses 9% (4% + 5%) because in high inflation periods, investment returns typically rise too</li>
-          </ul>
-          
-          <div class="glossary-example">
-            <strong>Example:</strong> Set to "Real Return" mode, enter 4%, inflation 2%<br>
-            Calculator uses: 6% nominal (4% real + 2% inflation) ✓ Correct!
-          </div>
-          
-          <p style="margin-top:12px"><strong>Nominal Return (Advanced)</strong> - Growth BEFORE inflation:</p>
-          <ul>
-            <li>This is the raw percentage your investments grow</li>
-            <li>You must manually adjust this when inflation changes</li>
-            <li>If inflation goes from 2% to 5% but you keep returns at 6%, your real return drops from 4% to just 1%</li>
-            <li>Use this for "stress testing" worst-case scenarios</li>
-          </ul>
-          
-          <div class="glossary-example">
-            <strong>Example:</strong> Set to "Nominal Return" mode, enter 6%, inflation 2%<br>
-            Real return: 4% (6% - 2%)<br>
-            Change inflation to 5%: Real return drops to 1% (6% - 5%)<br>
-            Money runs out much faster! ⚠️
-          </div>
-        </div>
-
-        <div class="glossary-item">
-          <h3>💰 RRSP (Registered Retirement Savings Plan)</h3>
-          <p>A tax-deferred savings account for retirement:</p>
-          <ul>
-            <li>Contributions reduce your taxable income TODAY (tax deduction)</li>
-            <li>Investments grow tax-free inside the account</li>
-            <li>You pay tax when you withdraw in retirement</li>
-            <li>Best for high earners who will be in a lower tax bracket in retirement</li>
-          </ul>
-          <div class="glossary-example">
-            <strong>Example:</strong> Contribute $10,000 → Save ~$3,000 in taxes today (30% bracket)<br>
-            Withdraw $10,000 in retirement → Pay ~$2,000 in taxes (20% bracket)<br>
-            Net savings: $1,000!
-          </div>
-        </div>
-
-        <div class="glossary-item">
-          <h3>🎯 TFSA (Tax-Free Savings Account)</h3>
-          <p>A tax-free savings and investment account:</p>
-          <ul>
-            <li>Contributions use after-tax dollars (no deduction)</li>
-            <li>Investments grow tax-free</li>
-            <li>Withdrawals are 100% tax-free anytime</li>
-            <li>Great for flexibility and tax-free retirement income</li>
-          </ul>
-        </div>
-
-        <div class="glossary-item">
-          <h3>🏛️ CPP (Canada Pension Plan)</h3>
-          <p>Government retirement pension based on your working years:</p>
-          <ul>
-            <li>You contribute a percentage of your salary while working</li>
-            <li>Standard start age is 65 (100% of benefit)</li>
-            <li>Start at 60: Reduced by 36% (7.2% per year early)</li>
-            <li>Delay to 70: Increased by 42% (8.4% per year delayed)</li>
-            <li>Maximum benefit (2025): ~$16,375/year at age 65</li>
-            <li>Indexed to inflation (increases every year with cost of living)</li>
-          </ul>
-          <div class="glossary-example">
-            <strong>Example:</strong> Eligible for $15,000/year at 65<br>
-            Take at 60: $9,600/year (36% reduction)<br>
-            Delay to 70: $21,300/year (42% increase)
-          </div>
-        </div>
-
-        <div class="glossary-item">
-          <h3>👴 OAS (Old Age Security)</h3>
-          <p>Government pension for all Canadian residents 65+:</p>
-          <ul>
-            <li>Not based on work history - just residency</li>
-            <li>Must have lived in Canada for 10+ years after age 18</li>
-            <li>Base amount (2025): ~$8,480/year starting at 65</li>
-            <li>Can delay to 70 for 7.2% increase per year</li>
-            <li>Indexed to inflation</li>
-            <li>Subject to clawback if income over ~$90,000 (not calculated here)</li>
-          </ul>
-        </div>
-
-        <div class="glossary-item">
-          <h3>📈 Inflation</h3>
-          <p>The rate at which prices increase over time:</p>
-          <ul>
-            <li>Historical average: ~2% per year in Canada</li>
-            <li>What costs $100 today will cost $102 next year at 2% inflation</li>
-            <li>Over 20 years at 2%, prices increase by ~50%</li>
-            <li>Your retirement income needs are automatically inflated each year</li>
-            <li>CPP and OAS are indexed (increase with inflation)</li>
-          </ul>
-        </div>
-
-        <div class="glossary-item">
-          <h3>📊 Withdrawal Strategies</h3>
-          <p><strong>TFSA First:</strong> Withdraw from TFSA first (tax-free), then RRSP. Minimizes taxes early.</p>
-          <p><strong>RRSP First:</strong> Withdraw from RRSP first, then TFSA. Depletes taxable account first.</p>
-          <p><strong>Balanced:</strong> Withdraw 50/50 from both accounts. Spreads tax burden.</p>
-          <p><strong>Custom:</strong> Set your own percentage split between accounts.</p>
-        </div>
-
-        <div class="glossary-item">
-          <h3>🏢 Indexed Pension</h3>
-          <p><strong>Fully Indexed:</strong> Pension increases with full inflation rate each year (keeps purchasing power)</p>
-          <p><strong>Partially Indexed:</strong> Pension increases with 50% of inflation (loses some purchasing power over time)</p>
-          <p><strong>No Indexing:</strong> Pension stays the same dollar amount (loses purchasing power as prices rise)</p>
-        </div>
-
-        <div class="glossary-item">
-          <h3>💡 Company Match</h3>
-          <p>Free money from your employer!</p>
-          <ul>
-            <li>Many employers match your RRSP contributions up to a percentage of your salary</li>
-            <li>Example: 5% match means if you contribute 5% of salary, employer adds another 5%</li>
-            <li>This is essentially a 100% instant return on your money</li>
-            <li>Always contribute enough to get the full match!</li>
-          </ul>
-        </div>
-
-      </div>
-    </div>
-
-    <div style="margin-bottom:12px">
-      <div style="height:8px;background:var(--border);border-radius:8px;overflow:hidden"><div id="progressFill" style="width:25%;height:100%;background:linear-gradient(90deg,var(--primary),var(--secondary));transition:width .25s"></div></div>
-    </div>
-
     
     <div class="section">
       <div class="section-header" data-section="userSection"><div><strong>👤 Your Information</strong></div><div class="collapse-icon">▼</div></div>
@@ -292,36 +132,41 @@ tbody td{padding:10px;border-bottom:1px solid var(--border);background:var(--bg-
 
         <div class="form-row">
           <div class="form-group">
-            <label>CPP Start Age (60-70) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Start CPP early at 60 (36% reduction) or delay to 70 (42% increase). Age 65 = 100%. See glossary for details.</span></span></label>
+            <label>CPP Start Age (60-70) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Start CPP early at 60 (reduction) or delay to 70 (increase). Age 65 = 100%.</span></span></label>
             <input id="cppStartAge" type="number" min="60" max="70" value="65">
           </div>
           <div class="form-group">
-            <label>OAS Start Age (65-70) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Old Age Security starts at 65. Delay to 70 for 7.2% increase per year. See glossary for details.</span></span></label>
+            <label>OAS Start Age (65-70) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Old Age Security starts at 65. Delay to 70 increases payments.</span></span></label>
             <input id="oasStartAge" type="number" min="65" max="70" value="65">
           </div>
         </div>
 
     <div class="form-row">
       <div class="form-group"><label>Annual Salary <span style="color:var(--danger)">*</span> <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Your current gross income before taxes. Enter 0 if not working.</span></span></label><input id="salary" type="number" min="0" placeholder="e.g., 80000" value="0" class="required-field"></div>
-      <div class="form-group"><label>Salary Increase (% per year) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Expected annual raise. Applied at end of each year for next year's contributions. Typical: 2-3%.</span></span></label><input id="salaryIncrease" type="number" step="0.1" value="2"></div>
+      <div class="form-group"><label>Salary Increase (% per year) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Applied at end of each year for next year's contributions.</span></span></label><input id="salaryIncrease" type="number" step="0.1" value="2"></div>
     </div>
 
     <div class="form-row">
-      <div class="form-group"><label>Company Match (% of salary) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Employer RRSP match as % of salary. This is free money - always contribute enough to get the full match! See glossary.</span></span></label><input id="companyMatch" type="number" step="0.1" value="0"></div>
+      <div class="form-group"><label>Company Match (% of salary) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Employer RRSP match (as % of salary).</span></span></label><input id="companyMatch" type="number" step="0.1" value="0"></div>
     </div>
   </div>
 </div>
+
+<!-- END OF PART 1 -->
+<!-- CONTINUE WITH PART 2 -->
+<!-- PART 2 OF 4 - PASTE AFTER PART 1 -->
+
 <!-- Fixed contributions -->
 <div class="section">
   <div class="section-header" data-section="fixedContribSection"><div><strong>💸 Fixed Contributions</strong></div><div class="collapse-icon">▼</div></div>
   <div class="section-content" id="fixedContribSection">
     <div class="form-row">
-      <div class="form-group"><label>Biweekly RRSP ($) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Fixed amount to RRSP every 2 weeks (26 payments per year). This is in addition to any percentage-based contributions.</span></span></label><input id="biweeklyRRSP" type="number" min="0" step="10" value="0"></div>
-      <div class="form-group"><label>Biweekly TFSA ($) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Fixed amount to TFSA every 2 weeks (26 payments per year). Tax-free growth and withdrawals!</span></span></label><input id="biweeklyTFSA" type="number" min="0" step="10" value="0"></div>
+      <div class="form-group"><label>Biweekly RRSP ($) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Fixed amount to RRSP every 2 weeks (26/year).</span></span></label><input id="biweeklyRRSP" type="number" min="0" step="10" value="0"></div>
+      <div class="form-group"><label>Biweekly TFSA ($) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Fixed amount to TFSA every 2 weeks (26/year).</span></span></label><input id="biweeklyTFSA" type="number" min="0" step="10" value="0"></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Monthly RRSP ($) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Fixed monthly RRSP contribution (12 payments per year).</span></span></label><input id="monthlyRRSP" type="number" min="0" step="10" value="0"></div>
-      <div class="form-group"><label>Monthly TFSA ($) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Fixed monthly TFSA contribution (12 payments per year).</span></span></label><input id="monthlyTFSA" type="number" min="0" step="10" value="0"></div>
+      <div class="form-group"><label>Monthly RRSP ($) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Fixed monthly RRSP contribution (12/year).</span></span></label><input id="monthlyRRSP" type="number" min="0" step="10" value="0"></div>
+      <div class="form-group"><label>Monthly TFSA ($) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Fixed monthly TFSA contribution (12/year).</span></span></label><input id="monthlyTFSA" type="number" min="0" step="10" value="0"></div>
     </div>
   </div>
 </div>
@@ -335,19 +180,19 @@ tbody td{padding:10px;border-bottom:1px solid var(--border);background:var(--bg-
     <div id="spouseInputs" style="display:none;margin-top:10px">
       <div class="form-row">
         <div class="form-group"><label>Spouse Age <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Spouse's current age.</span></span></label><input id="spouseAge" type="number" min="0" max="120"></div>
-        <div class="form-group"><label>Spouse Retirement Age <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Age when spouse plans to retire.</span></span></label><input id="spouseRetirementAge" type="number" min="0" max="120"></div>
+        <div class="form-group"><label>Spouse Retirement Age <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Spouse's retirement age.</span></span></label><input id="spouseRetirementAge" type="number" min="0" max="120"></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Spouse CPP Start Age (60-70) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">When spouse will start receiving CPP benefits.</span></span></label><input id="spouseCppStartAge" type="number" min="60" max="70" value="65"></div>
-        <div class="form-group"><label>Spouse OAS Start Age (65-70) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">When spouse will start receiving OAS benefits.</span></span></label><input id="spouseOasStartAge" type="number" min="65" max="70" value="65"></div>
+        <div class="form-group"><label>Spouse CPP Start Age (60-70) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">When spouse will start CPP.</span></span></label><input id="spouseCppStartAge" type="number" min="60" max="70" value="65"></div>
+        <div class="form-group"><label>Spouse OAS Start Age (65-70) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">When spouse will start OAS.</span></span></label><input id="spouseOasStartAge" type="number" min="65" max="70" value="65"></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Spouse Annual Salary <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Spouse's current gross salary before taxes.</span></span></label><input id="spouseSalary" type="number" value="0"></div>
-        <div class="form-group"><label>Spouse Company Match (%) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Employer RRSP match for spouse as % of salary.</span></span></label><input id="spouseCompanyMatch" type="number" step="0.1" value="0"></div>
+        <div class="form-group"><label>Spouse Annual Salary <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Spouse's current gross salary.</span></span></label><input id="spouseSalary" type="number" value="0"></div>
+        <div class="form-group"><label>Spouse Company Match (%) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Employer match for spouse RRSP.</span></span></label><input id="spouseCompanyMatch" type="number" step="0.1" value="0"></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Spouse RRSP Balance <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Spouse's current RRSP account balance.</span></span></label><input id="spouseRRSPBalance" type="number" value="0"></div>
-        <div class="form-group"><label>Spouse TFSA Balance <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Spouse's current TFSA account balance.</span></span></label><input id="spouseTFSABalance" type="number" value="0"></div>
+        <div class="form-group"><label>Spouse RRSP Balance <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Spouse's current RRSP balance.</span></span></label><input id="spouseRRSPBalance" type="number" value="0"></div>
+        <div class="form-group"><label>Spouse TFSA Balance <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Spouse's current TFSA balance.</span></span></label><input id="spouseTFSABalance" type="number" value="0"></div>
       </div>
     </div>
   </div>
@@ -358,8 +203,8 @@ tbody td{padding:10px;border-bottom:1px solid var(--border);background:var(--bg-
   <div class="section-header" data-section="balancesSection"><div><strong>💰 Current Balances</strong></div><div class="collapse-icon">▼</div></div>
   <div class="section-content" id="balancesSection">
     <div class="form-row">
-      <div class="form-group"><label>Your RRSP Balance <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Total current RRSP value. Enter 0 if starting fresh. See glossary for RRSP explanation.</span></span></label><input id="rrspBalance" type="number" placeholder="e.g., 120000" value="0"></div>
-      <div class="form-group"><label>Your TFSA Balance <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Total current TFSA value. Enter 0 if starting fresh. See glossary for TFSA explanation.</span></span></label><input id="tfsaBalance" type="number" placeholder="e.g., 50000" value="0"></div>
+      <div class="form-group"><label>Your RRSP Balance <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Total current RRSP value. Enter 0 if starting fresh.</span></span></label><input id="rrspBalance" type="number" placeholder="e.g., 120000" value="0"></div>
+      <div class="form-group"><label>Your TFSA Balance <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Total current TFSA value. Enter 0 if starting fresh.</span></span></label><input id="tfsaBalance" type="number" placeholder="e.g., 50000" value="0"></div>
     </div>
   </div>
 </div>
@@ -371,7 +216,7 @@ tbody td{padding:10px;border-bottom:1px solid var(--border);background:var(--bg-
     <div class="form-row"><label style="display:flex;gap:10px;align-items:center;"><input type="checkbox" id="hasPension"> I have a workplace pension</label></div>
     <div id="pensionInputs" style="display:none;margin-top:10px">
       <div class="form-row"><div class="form-group"><label>Annual Pension Amount ($)</label><input id="pensionAmount" type="number" min="0"></div><div class="form-group"><label>Pension Start Age</label><input id="pensionStartAge" type="number" min="0" max="120"></div></div>
-      <div class="form-row"><div class="form-group"><label>Pension Inflation Protection <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">See glossary for explanation of indexed pensions. Fully indexed = keeps pace with inflation. No indexing = loses value over time.</span></span></label><select id="pensionIndexed"><option value="none">No inflation protection</option><option value="full">Fully indexed</option><option value="partial">Partially indexed</option></select></div></div>
+      <div class="form-row"><div class="form-group"><label>Pension Inflation Protection</label><select id="pensionIndexed"><option value="none">No inflation protection</option><option value="full">Fully indexed</option><option value="partial">Partially indexed</option></select></div></div>
     </div>
   </div>
 </div>
@@ -382,7 +227,6 @@ tbody td{padding:10px;border-bottom:1px solid var(--border);background:var(--bg-
   <div class="section-content" id="youContribSection">
     <div class="table-wrap"><table><thead><tr><th>Age</th><th>% to RRSP</th><th>% to TFSA</th><th>Action</th></tr></thead><tbody id="youContribRows"></tbody></table></div>
     <div style="margin-top:10px"><button class="btn btn-secondary" onclick="addYouContribRow()">➕ Add Row</button></div>
-    <div class="helper-text" style="margin-top:8px">Optional: Set different contribution percentages at different ages. Example: 10% to RRSP from age 30-50, then 15% from age 50-65.</div>
   </div>
 </div>
 
@@ -399,7 +243,6 @@ tbody td{padding:10px;border-bottom:1px solid var(--border);background:var(--bg-
   <div class="section-content" id="returnSection">
     <div class="table-wrap"><table><thead><tr><th>Starting Age</th><th>Return Rate (% per year)</th><th>Action</th></tr></thead><tbody id="returnRows"></tbody></table></div>
     <div style="margin-top:10px"><button class="btn btn-secondary" onclick="addReturnRow()">➕ Add Row</button></div>
-    <div class="helper-text" style="margin-top:8px">Optional: Set different expected returns at different ages. Example: 7% returns age 30-60 (aggressive), then 5% age 60-90 (conservative).</div>
   </div>
 </div>
 
@@ -408,22 +251,19 @@ tbody td{padding:10px;border-bottom:1px solid var(--border);background:var(--bg-
   <div class="section-content" id="retirementSettings">
     <div class="form-row">
       <div class="form-group">
-        <label>Return Type <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">IMPORTANT: Real Return (recommended) = growth after inflation, stays constant. Nominal Return (advanced) = growth before inflation, you must adjust manually. See glossary for detailed explanation!</span></span></label>
+        <label>Return Type</label>
         <select id="returnType">
-          <option value="real">Real Return (after inflation) - RECOMMENDED</option>
-          <option value="nominal">Nominal Return (before inflation) - Advanced</option>
+          <option value="real">Real Return (after inflation)</option>
+          <option value="nominal">Nominal Return (before inflation)</option>
         </select>
       </div>
       <div class="form-group">
-        <label>Investment Return (% per year) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext" id="returnTooltip">Real Return mode (recommended): Enter 4% for conservative, 5-6% for balanced, 7%+ for aggressive. This stays constant regardless of inflation. Nominal mode: You must manually adjust when inflation changes. See glossary for full explanation!</span></span></label>
+        <label>Investment Return (% per year) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext" id="returnTooltip">Real return = growth after inflation. Nominal return = total growth before inflation. For most planning, use Real Return mode.</span></span></label>
         <input id="returnRate" type="number" step="0.1" value="4">
       </div>
     </div>
-    <div class="form-row"><div class="form-group"><label>Life Expectancy (age) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">How long you expect to live. Canadian average is ~82, but planning to 90-95 is safer.</span></span></label><input id="lifeExpectancy" type="number" min="0" max="120" value="90"></div></div>
-    <div class="form-row">
-      <div class="form-group"><label>Inflation (% per year) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Expected annual price increases. Historical Canadian average: ~2%. Your income needs are automatically inflated each year. CPP/OAS also inflate to keep pace. See glossary!</span></span></label><input id="inflationRate" type="number" step="0.1" value="2"></div>
-      <div class="form-group"><label>Withdrawal Strategy <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Which account to withdraw from first in retirement. TFSA First = minimize taxes. See glossary for all options.</span></span></label><select id="withdrawalStrategy"><option value="tfsa-first">TFSA First</option><option value="balanced">Balanced</option><option value="rrsp-first">RRSP First</option><option value="custom">Custom</option></select></div>
-    </div>
+    <div class="form-row"><div class="form-group"><label>Life Expectancy (age)</label><input id="lifeExpectancy" type="number" min="0" max="120" value="90"></div></div>
+    <div class="form-row"><div class="form-group"><label>Inflation (% per year) <span class="tooltip"><span class="tooltip-icon">i</span><span class="tooltiptext">Applied across the entire timeline; withdrawal targets are inflated annually.</span></span></label><input id="inflationRate" type="number" step="0.1" value="2"></div><div class="form-group"><label>Withdrawal Strategy</label><select id="withdrawalStrategy"><option value="tfsa-first">TFSA First</option><option value="balanced">Balanced</option><option value="rrsp-first">RRSP First</option><option value="custom">Custom</option></select></div></div>
     <div id="customRatioRow" style="display:none;margin-top:8px"><div class="form-row"><div class="form-group"><label>TFSA Withdrawal % (remainder from RRSP)</label><input id="tfsaPercent" type="number" min="0" max="100"></div></div></div>
   </div>
 </div>
@@ -433,7 +273,7 @@ tbody td{padding:10px;border-bottom:1px solid var(--border);background:var(--bg-
   <div class="section-content" id="incomeSection">
     <div class="table-wrap"><table><thead><tr><th>Starting Age</th><th>Annual Income Needed</th><th>Action</th></tr></thead><tbody id="incomeRows"></tbody></table></div>
     <div style="margin-top:10px"><button class="btn btn-secondary" onclick="addIncomeRow()">➕ Add Row</button></div>
-    <div class="helper-text">Base amounts will be inflation-adjusted each year automatically. Example: Need $60,000/year from 65-75, then $50,000/year from 75-90.</div>
+    <div class="helper-text">Base amounts will be inflation-adjusted each year automatically.</div>
   </div>
 </div>
 
@@ -489,34 +329,41 @@ tbody td{padding:10px;border-bottom:1px solid var(--border);background:var(--bg-
   </p>
 </div>
 
-
-  <!-- ===== FOOTER SECTION ===== -->
   <footer style="text-align:center;margin-top:20px;opacity:0.7;font-size:13px;">
   © <span id="yearNow"></span> Ryan O'Leary | Created to help Canadians plan for retirement
 </footer>
-  <!-- =========================== -->
 
 </div>
+
+<!-- END OF PART 2 -->
+<!-- CONTINUE WITH PART 3 -->
+<!-- PART 3 OF 4 - PASTE AFTER PART 2 -->
+
 <script>
 /* helpers */
 function toNum(v){ const n=parseFloat(v); return isNaN(n)?0:n; }
 function showToast(msg, icon='✓'){ const t=document.getElementById('toast'); document.getElementById('toastIcon').textContent=icon; document.getElementById('toastMessage').textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
 function showLoading(){ document.getElementById('loadingOverlay').classList.add('show'); }
 function hideLoading(){ document.getElementById('loadingOverlay').classList.remove('show'); }
+
+/* Scroll to top functionality */
+const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+window.addEventListener('scroll', function() {
+  if (window.pageYOffset > 300) {
+    scrollToTopBtn.classList.add('show');
+  } else {
+    scrollToTopBtn.classList.remove('show');
+  }
+});
+scrollToTopBtn.addEventListener('click', function() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
 /* toggles */
 document.getElementById('settingsBtn').addEventListener('click', e=>{ e.stopPropagation(); document.getElementById('settingsMenu').classList.toggle('show'); });
 document.addEventListener('click', ()=> document.getElementById('settingsMenu').classList.remove('show'));
 document.getElementById('settingsMenu').addEventListener('click', e=> e.stopPropagation());
 document.getElementById('darkModeBtn').addEventListener('click', ()=>{ const html=document.documentElement; const isDark=html.classList.toggle('dark'); document.getElementById('darkModeBtn').textContent = isDark ? '☀️' : '🌙'; localStorage.setItem('retirement.dark', isDark ? '1' : '0'); });
-
-/* Help banner toggle */
-document.getElementById('helpBanner').addEventListener('click', ()=>{
-  const section = document.getElementById('glossarySection');
-  const arrow = document.getElementById('helpArrow');
-  const isVisible = section.style.display !== 'none';
-  section.style.display = isVisible ? 'none' : 'block';
-  arrow.textContent = isVisible ? '▼' : '▲';
-});
 
 /* Section collapse/expand */
 document.querySelectorAll('.section-header').forEach(header => {
@@ -548,20 +395,16 @@ document.getElementById('clearDataBtn').addEventListener('click', ()=>{
   document.getElementById('rrspBalance').value = '0';
   document.getElementById('tfsaBalance').value = '0';
   document.getElementById('returnRate').value = '4';
-  document.getElementById('returnType').value = 'real';
   document.getElementById('lifeExpectancy').value = '90';
   document.getElementById('inflationRate').value = '2';
   document.getElementById('withdrawalStrategy').value = 'tfsa-first';
   document.getElementById('tfsaPercent').value = '';
-  
   document.getElementById('hasSpouse').checked = false;
   document.getElementById('hasPension').checked = false;
-  
   document.getElementById('youContribRows').innerHTML = '';
   document.getElementById('spouseContribRows').innerHTML = '';
   document.getElementById('incomeRows').innerHTML = '';
   document.getElementById('returnRows').innerHTML = '';
-  
   document.getElementById('spouseInputs').style.display = 'none';
   document.getElementById('spouseContribSection').style.display = 'none';
   document.getElementById('pensionInputs').style.display = 'none';
@@ -569,9 +412,7 @@ document.getElementById('clearDataBtn').addEventListener('click', ()=>{
   document.getElementById('results').style.display = 'none';
   document.getElementById('timelineSection').style.display = 'none';
   document.getElementById('customRatioRow').style.display = 'none';
-  
   try { localStorage.removeItem('retirementPlan.local'); } catch(e){}
-  
   showToast('All fields cleared','🗑️');
   document.getElementById('settingsMenu').classList.remove('show');
 });
@@ -592,20 +433,17 @@ function saveToLocalStorage() {
 }
 document.getElementById('saveLocalBtn').addEventListener('click', () => { saveToLocalStorage(); });
 
-/* Export with descriptive filename */
+/* Export */
 document.getElementById('exportBtn').addEventListener('click', ()=>{
   try{
     const data = gatherAllInputs();
     const raw = JSON.stringify(data, null, 2);
     const blob = new Blob([raw], { type:'application/json' });
     const url = URL.createObjectURL(blob);
-    
-    // Create filename with age and date
     const age = data.currentAge || 'unknown';
     const today = new Date();
-    const dateStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const dateStr = today.toISOString().split('T')[0];
     const filename = `retirement-plan-age-${age}-${dateStr}.json`;
-    
     const a = document.createElement('a'); 
     a.href = url; 
     a.download = filename; 
@@ -626,18 +464,17 @@ document.getElementById('hasSpouse').addEventListener('change', function(){ cons
 document.getElementById('hasPension').addEventListener('change', function(){ document.getElementById('pensionInputs').style.display = this.checked ? 'block':'none'; document.getElementById('pensionCard').style.display = this.checked ? 'block':'none'; });
 document.getElementById('withdrawalStrategy').addEventListener('change', function(){ document.getElementById('customRatioRow').style.display = this.value==='custom'?'flex':'none'; });
 
-/* Return type toggle - update defaults and help text */
+/* Return type toggle */
 document.getElementById('returnType').addEventListener('change', function(){
   const isReal = this.value === 'real';
   const returnInput = document.getElementById('returnRate');
   const tooltip = document.getElementById('returnTooltip');
-  
   if(isReal) {
     if(returnInput.value == '6') returnInput.value = '4';
-    tooltip.textContent = 'Real Return mode (recommended): Enter 4% for conservative, 5-6% for balanced, 7%+ for aggressive. This represents your purchasing power growth and stays constant regardless of inflation changes. When inflation changes, the calculator automatically adjusts nominal returns. See glossary for full explanation!';
+    tooltip.textContent = 'Real return = growth after inflation. Example: 4% real return means your money grows 4% faster than inflation. This stays constant regardless of inflation rate.';
   } else {
     if(returnInput.value == '4') returnInput.value = '6';
-    tooltip.textContent = 'Nominal Return mode (advanced): This is your raw investment return BEFORE inflation. If inflation is 2% and you enter 6%, your real return is 4%. WARNING: If you change inflation, you must manually adjust this number or your projections will be wrong! See glossary for details.';
+    tooltip.textContent = 'Nominal return = total growth before inflation. Example: 6% nominal with 2% inflation = 4% real. You must adjust this when inflation changes!';
   }
 });
 
@@ -707,6 +544,11 @@ function populateAllFromData(d){ if(!d) return; try{ if('currentAge' in d) docum
 
 /* Calculation logic */
 function calculate(){ if(!validateInputs()) return; showLoading(); setTimeout(()=>{ try{ performCalculation(); hideLoading(); }catch(e){ console.error(e); hideLoading(); showToast('Calculation error','❌'); } },300); }
+
+<!-- END OF PART 3 -->
+<!-- CONTINUE WITH PART 4 (FINAL) -->
+<!-- PART 4 OF 4 (FINAL) - PASTE AFTER PART 3 -->
+
 function performCalculation(){
   const currentAge = parseInt(document.getElementById('currentAge').value) || 0;
   const retirementAge = parseInt(document.getElementById('retirementAge').value) || 65;
@@ -842,7 +684,7 @@ function performCalculation(){
     if(entry){
       const yearsSinceBase = Math.max(0, age - entry.baseAge);
       incomeNeeded = entry.amount * Math.pow(1 + inflationRate, yearsSinceBase);
-    }else{
+    } else {
       const retEntry = incomeForAge(retirementAge);
       if(retEntry){
         const yrs = Math.max(0, age - retEntry.baseAge);
@@ -937,13 +779,13 @@ function performCalculation(){
   }
 
   const atRet = timelineData.find(t=>t.age===retirementAge) || timelineData[timelineData.length-1] || {rrspCombined:0, tfsaCombined:0, yourCPP:0, yourOAS:0, pension:0};
-  document.getElementById('totalRetirement').textContent = Math.round(atRet.rrspCombined + atRet.tfsaCombined + (atRet.yourCPP||0) + (atRet.yourOAS||0) + (atRet.pension||0)).toLocaleString();
-  document.getElementById('rrspRetirement').textContent = Math.round(atRet.rrspCombined).toLocaleString();
-  document.getElementById('tfsaRetirement').textContent = Math.round(atRet.tfsaCombined).toLocaleString();
+  document.getElementById('totalRetirement').textContent = '$' + Math.round(atRet.rrspCombined + atRet.tfsaCombined + (atRet.yourCPP||0) + (atRet.yourOAS||0) + (atRet.pension||0)).toLocaleString();
+  document.getElementById('rrspRetirement').textContent = '$' + Math.round(atRet.rrspCombined).toLocaleString();
+  document.getElementById('tfsaRetirement').textContent = '$' + Math.round(atRet.tfsaCombined).toLocaleString();
   document.getElementById('fundsLastAge').textContent = 'Age ' + fundsLastAge;
-  document.getElementById('yourGovt').textContent = Math.round(baseCppYouAmount + baseOasAmount).toLocaleString();
-  document.getElementById('spouseGovt').textContent = Math.round(baseSpouseCppAmount + baseSpouseOasAmount).toLocaleString();
-  if(hasPension){ document.getElementById('pensionCard').style.display='block'; document.getElementById('pensionDisplay').textContent = Math.round(pensionAmount).toLocaleString(); } else document.getElementById('pensionCard').style.display='none';
+  document.getElementById('yourGovt').textContent = '$' + Math.round(baseCppYouAmount + baseOasAmount).toLocaleString();
+  document.getElementById('spouseGovt').textContent = '$' + Math.round(baseSpouseCppAmount + baseSpouseOasAmount).toLocaleString();
+  if(hasPension){ document.getElementById('pensionCard').style.display='block'; document.getElementById('pensionDisplay').textContent = '$' + Math.round(pensionAmount).toLocaleString(); } else document.getElementById('pensionCard').style.display='none';
 
   window.retirementTimelineData = timelineData;
   window.retirementAge = retirementAge;
@@ -953,6 +795,7 @@ function performCalculation(){
   if (document.getElementById('timelineSection').style.display === 'block') showTimeline();
 }
 
+/* show timeline */
 function showTimeline(){
   if(!window.retirementTimelineData){ alert('Please calculate first.'); return; }
   const data = window.retirementTimelineData; const tbody = document.getElementById('timelineTableBody'); tbody.innerHTML='';
@@ -961,21 +804,25 @@ function showTimeline(){
     if(d.age === window.retirementAge) row.classList.add('retirement-row');
     row.insertCell(0).textContent = d.age;
     row.insertCell(1).textContent = d.year;
-    const c1=row.insertCell(2); c1.style.textAlign='right'; c1.textContent = Math.round(d.rrspCombined).toLocaleString();
-    const c2=row.insertCell(3); c2.style.textAlign='right'; c2.textContent = Math.round(d.tfsaCombined).toLocaleString();
-    const c3=row.insertCell(4); c3.style.textAlign='right'; c3.textContent = Math.round(d.yourCPP).toLocaleString();
-    const c4=row.insertCell(5); c4.style.textAlign='right'; c4.textContent = Math.round(d.yourOAS).toLocaleString();
-    const c5=row.insertCell(6); c5.style.textAlign='right'; c5.textContent = Math.round(d.spCPP).toLocaleString();
-    const c6=row.insertCell(7); c6.style.textAlign='right'; c6.textContent = Math.round(d.spOAS).toLocaleString();
-    const c7=row.insertCell(8); c7.style.textAlign='right'; c7.textContent = Math.round(d.pension || 0).toLocaleString();
-    const c8=row.insertCell(9); c8.style.textAlign='right'; c8.textContent = Math.round(d.total).toLocaleString();
+    const c1=row.insertCell(2); c1.style.textAlign='right'; c1.textContent = '$' + Math.round(d.rrspCombined).toLocaleString();
+    const c2=row.insertCell(3); c2.style.textAlign='right'; c2.textContent = '$' + Math.round(d.tfsaCombined).toLocaleString();
+    const c3=row.insertCell(4); c3.style.textAlign='right'; c3.textContent = '$' + Math.round(d.yourCPP).toLocaleString();
+    const c4=row.insertCell(5); c4.style.textAlign='right'; c4.textContent = '$' + Math.round(d.yourOAS).toLocaleString();
+    const c5=row.insertCell(6); c5.style.textAlign='right'; c5.textContent = '$' + Math.round(d.spCPP).toLocaleString();
+    const c6=row.insertCell(7); c6.style.textAlign='right'; c6.textContent = '$' + Math.round(d.spOAS).toLocaleString();
+    const c7=row.insertCell(8); c7.style.textAlign='right'; c7.textContent = '$' + Math.round(d.pension || 0).toLocaleString();
+    const c8=row.insertCell(9); c8.style.textAlign='right'; c8.textContent = '$' + Math.round(d.total).toLocaleString();
   }
   document.getElementById('timelineSection').style.display='block';
   document.getElementById('timelineSection').scrollIntoView({behavior:'smooth'});
 }
 
+/* init */
 window.addEventListener('load', ()=>{
-  if(localStorage.getItem('retirement.dark')==='1') document.documentElement.classList.add('dark');
+  if(localStorage.getItem('retirement.dark')==='1') {
+    document.documentElement.classList.add('dark');
+    document.getElementById('darkModeBtn').textContent = '☀️';
+  }
   document.getElementById('yearNow').textContent = new Date().getFullYear();
   
   try {
@@ -989,4 +836,6 @@ window.addEventListener('load', ()=>{
 
 </script>
 </body>
-  </html>
+</html>
+
+<!-- END OF PART 4 - THIS IS THE COMPLETE FILE -->
