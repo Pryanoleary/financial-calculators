@@ -70,10 +70,31 @@
     }
 
     /* LIGHT MODE */
-    body.light{ --bg:#f4f6f8; --card:#ffffff; --muted:#5a6b73; --teal:#0ea37a; color:#0b1b20; background:linear-gradient(180deg,#f7fbfb 0%, #f4f6f8 100%); }
+    body.light{ 
+      --bg:#f4f6f8; 
+      --card:#ffffff; 
+      --muted:#5a6b73; 
+      --teal:#0ea37a; 
+      --glass: rgba(0,0,0,0.03);
+      color:#0b1b20; 
+      background:#f4f6f8;
+    }
     body.light input{background:#fff;color:inherit}
     body.light table thead th{color:var(--muted)}
-    body.light .card{box-shadow:0 6px 18px rgba(2,6,23,0.06);border:1px solid rgba(2,6,23,0.03)}
+    body.light .card{
+      background:#ffffff;
+      box-shadow:0 6px 18px rgba(2,6,23,0.06);
+      border:1px solid rgba(2,6,23,0.03)
+    }
+    body.light canvas{
+      background:#ffffff;
+    }
+    body.light .metric{
+      background:linear-gradient(90deg, rgba(0,0,0,0.02), rgba(0,0,0,0.01));
+    }
+    body.light .timeline{
+      background:linear-gradient(90deg, rgba(0,0,0,0.03), rgba(0,0,0,0.015));
+    }
   </style>
 </head>
 <body class="dark">
@@ -196,7 +217,9 @@
       </aside>
     </section>
 
-    <footer class="muted"> © 2025 Ryan's Financial Calculators All values in CAD (rounded to nearest dollar)</footer>
+    <footer style="text-align:center;margin-top:20px;opacity:0.7;font-size:13px;">
+  © <span id="yearNow"></span> Ryan O'Leary | Created to help others
+</footer>
   </div>
 
   <script>
@@ -227,6 +250,7 @@
     const exportCsvBtn = document.getElementById('exportCsv');
 
     let payoffChart = null;
+    let latestSimulation = null;
 
     // Add / remove rows
     addDebtBtn.addEventListener('click', () => {
@@ -249,7 +273,6 @@
     });
 
     clearAllBtn.addEventListener('click', () => {
-      // remove all rows then add a blank one
       debtBody.innerHTML = '';
       addDebtBtn.click();
       addDebtBtn.click();
@@ -275,17 +298,13 @@
       latestSimulation.schedule.forEach(row=>{
         csvRows.push([row.period,row.name,row.payment,row.interest,row.principal,row.remaining].join(','));
       });
-      const blob = new Blob([csvRows.join('\\n')], {type:'text/csv'});
+      const blob = new Blob([csvRows.join('\n')], {type:'text/csv'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = 'debt_snowball_schedule.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
     });
 
-    // latestSimulation holds last run for re-render/export
-    let latestSimulation = null;
-
     // Main calculate function
     calculateBtn.addEventListener('click', () => {
-      // Build debts array from table
       const rows = Array.from(debtBody.querySelectorAll('tr'));
       let debts = rows.map((r, idx) => {
         const name = (r.children[0].querySelector('input').value || `Debt ${idx+1}`).trim();
@@ -300,24 +319,19 @@
         return;
       }
 
-      // Snowball sorts lowest balance first (user can pre-order; we still sort to be safe)
       debts.sort((a,b) => a.balance - b.balance);
 
-      const freq = paymentFrequency.value; // 'monthly' or 'biweekly'
+      const freq = paymentFrequency.value;
       const periodsPerYear = (freq === 'biweekly') ? 26 : 12;
-      // months per period used to advance date for timeline (biweekly is ~0.4615 months)
-      const monthsPerPeriod = 12 / periodsPerYear;
 
       let totalOrig = debts.reduce((s,d) => s + d.balance, 0);
       let totalInterest = 0;
       let totalPaid = 0;
 
-      // We'll simulate period-by-period. Track schedule rows for CSV and chart data.
-      const schedule = []; // {period, name, payment, interest, principal, remaining}
-      const balancesOverTime = []; // array of arrays [balanceDebt0,balanceDebt1,...] each period
+      const schedule = [];
+      const balancesOverTime = [];
       const startBalances = debts.map(d => d.balance);
 
-      // Clone debts to mutate
       const working = debts.map(d => ({
         name: d.name,
         balance: d.balance,
@@ -325,42 +339,35 @@
         interestPercent: d.interestPercent
       }));
 
-      // Current extra goes to the smallest active debt; when a debt is paid, its minPayment + currentExtra is rolled
       let userExtra = clampInt(extraPaymentInput.value);
 
-      // We'll simulate until all balances zero or a safety cap (1000 periods)
       let period = 0;
-      let payoffDates = []; // store {name, periodIndex}
-      const maxPeriods = 2000; // safety cap
+      let payoffDates = [];
+      const maxPeriods = 2000;
+      
       while(working.some(d => d.balance > 0) && period < maxPeriods){
         period++;
-        // Snapshot balances at start of period for chart before interest? We'll record after interest+payment to show progress.
-        // Apply interest to each active debt (rounded UP to nearest dollar)
+        
         const periodInterests = working.map(d => {
           if(d.balance <= 0) return 0;
-          // interest per period = balance * (annual rate / periodsPerYear)
           const interest = Math.ceil(d.balance * (d.interestPercent / 100) / periodsPerYear);
           d.balance += interest;
           return interest;
         });
 
-        // Find first active (smallest) debt index (snowball)
         const activeIndices = working.map((d,i)=> d.balance>0 ? i : -1).filter(i=>i>=0);
         const smallestIndex = activeIndices.length > 0 ? activeIndices[0] : -1;
 
-        // Apply minimum payments to all active debts; extra applied to smallest active debt
         for(let i=0;i<working.length;i++){
           const d = working[i];
           if(d.balance <= 0) continue;
-          let payment = Math.min(d.minPayment, d.balance); // pay at least min payment up to balance
-          // if this is the smallest active, add the extra
+          let payment = Math.min(d.minPayment, d.balance);
+          
           if(i === smallestIndex && userExtra > 0){
             const extraApplied = Math.min(userExtra, d.balance - payment);
             payment += extraApplied;
-            // extra is one-time until debt paid. We treat userExtra as amount available each period that goes to smallest active.
-            // (When debt paid, minPayment of that debt will be added to next debt and extra remains same.)
           }
-          // Ensure rounding integer dollars
+          
           payment = Math.round(payment);
           const preBalance = d.balance;
           d.balance = Math.max(0, Math.round(d.balance - payment));
@@ -369,7 +376,6 @@
           totalPaid += payment;
           totalInterest += interestThis;
 
-          // record schedule entry
           schedule.push({
             period,
             name: d.name,
@@ -379,53 +385,39 @@
             remaining: d.balance
           });
 
-          // If paid off this iteration, roll the paid debt's minPayment into next active debt
           if(preBalance > 0 && d.balance === 0){
             payoffDates.push({ name: d.name, period });
-            // Find next active debt to receive the rolled payment
             const nextIndex = working.findIndex(w=> w.balance > 0);
             if(nextIndex >= 0){
               working[nextIndex].minPayment += d.minPayment;
-              // Also roll extra: per your specification, when the debt is paid off, the extra payment + that debt's minPayment goes toward the next debt.
-              // That implies userExtra should be effectively added to next debt's payments after payoff; implement by adding to next debt's minPayment once first paid.
-              // To mirror your desired behavior: when a debt is fully paid, add (d.minPayment + userExtra) to next debt's minPayment.
               working[nextIndex].minPayment += userExtra;
-              // And now set this debt's minPayment to 0 to avoid double counting (already paid).
               d.minPayment = 0;
             }
           }
-        } // end per-debt payments
+        }
 
-        // After payments, collect balances for chart
         balancesOverTime.push(working.map(w => Math.round(w.balance)));
 
-        // Safety: avoid infinite loop if payments are zero / can't progress
         const totalRemaining = working.reduce((s,w)=> s + w.balance, 0);
         if(totalRemaining === 0) break;
 
-        // detect lack of progress: if no one made a principal reduction in the entire period, break to avoid infinite loop
         const lastPeriod = balancesOverTime[balancesOverTime.length - 1];
         const prevPeriod = balancesOverTime.length > 1 ? balancesOverTime[balancesOverTime.length - 2] : startBalances;
         const reduced = lastPeriod.some((val, idx) => val < prevPeriod[idx]);
         if(!reduced){
-          // no meaningful reduction — likely payments are 0. break.
-          console.warn('No balance reduction detected — stopping simulation.');
+          console.warn('No balance reduction detected – stopping simulation.');
           break;
         }
-        // continue next period
-      } // end simulation
+      }
 
-      // Build payoff timeline with calendar dates:
       const startDate = new Date();
       const timeline = payoffDates.map(pd => {
-        // compute months to add: convert period to months using months per period
         const monthsToAdd = Math.round((pd.period) * (12 / (paymentFrequency.value === 'biweekly' ? 26 : 12)));
         const d = new Date(startDate);
         d.setMonth(d.getMonth() + monthsToAdd);
         return { name: pd.name, date: d.toLocaleString('en-CA', { month: 'long', year: 'numeric' }) };
       });
 
-      // totals & display
       const totalOrigRounded = Math.round(totalOrig);
       origBalanceEl.innerText = toCAD(totalOrigRounded);
       totalInterestEl.innerText = toCAD(totalInterest);
@@ -433,36 +425,31 @@
       periodsToPayEl.innerText = balancesOverTime.length.toLocaleString();
       debtFreeDateEl.innerText = (timeline.length > 0) ? timeline[timeline.length - 1].date : 'N/A';
 
-      // Render payoff timeline list
       if(timeline.length === 0){
         payoffTimelineEl.innerHTML = '<div class="small muted">No debts are scheduled to be paid (check payments and extra amounts).</div>';
       } else {
         payoffTimelineEl.innerHTML = timeline.map(t => `<div style="display:flex;justify-content:space-between;padding:6px 4px;border-bottom:1px solid rgba(255,255,255,0.02)"><div>${t.name}</div><div style="font-weight:700">${t.date}</div></div>`).join('');
       }
 
-      // Keep simulation for chart & export
       latestSimulation = { debts: debts.map(d=>({...d})), startBalances, schedule, balancesOverTime, timeline, totalInterest, totalPaid };
 
-      // Render chart
       renderChart(latestSimulation);
-    }); // end calculateBtn click
+    });
 
     // Chart rendering function
     function renderChart(sim) {
       const ctx = document.getElementById('payoffChart').getContext('2d');
       if(!sim) {
-        // clear chart
         if(payoffChart){ payoffChart.destroy(); payoffChart = null; }
         return;
       }
 
-      const mode = chartModeEl.value || 'bar'; // 'bar' or 'line'
+      const mode = chartModeEl.value || 'bar';
       const labels = sim.balancesOverTime.map((_, idx) => `P${idx+1}`);
 
       if(payoffChart) payoffChart.destroy();
 
       if(mode === 'bar'){
-        // Build datasets per debt (stacked)
         const datasets = sim.debts.map((d, di) => {
           const data = sim.balancesOverTime.map(row => row[di] || 0);
           const hue = (di * 55) % 360;
@@ -490,7 +477,6 @@
           }
         });
       } else {
-        // line chart of total remaining debt per period
         const totals = sim.balancesOverTime.map(row => row.reduce((s,v)=>s+v, 0));
         payoffChart = new Chart(ctx, {
           type: 'line',
@@ -515,19 +501,13 @@
       }
     }
 
-   
-
-    // Chart mode change triggers re-render
     chartModeEl.addEventListener('change', ()=> { renderChart(latestSimulation); });
 
-    // Initial calculation on load
     window.addEventListener('load', () => {
-      // Make sure at least one sample row exists
       if(debtBody.children.length === 0) addDebtBtn.click();
       calculateBtn.click();
     });
 
-    // Accessibility: keyboard enter on inputs will not submit page but recalc
     document.addEventListener('keydown', (e)=>{
       if(e.key === 'Enter' && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) {
         e.preventDefault();
